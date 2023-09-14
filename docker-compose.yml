@@ -1,0 +1,10 @@
+
+services:
+  db:
+    image: postgres:15.4
+    environment:
+      POSTGRES_DB: mixtape
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
