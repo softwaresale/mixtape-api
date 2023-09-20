@@ -15,7 +15,8 @@ public class Profile {
     private String displayName;
     private String profilePicURL;
 
-    public Profile() {}
+    public Profile() {
+    }
 
     public Profile(String id, String spotifyUID, String displayName, String profilePicURL) {
         this.id = id;
