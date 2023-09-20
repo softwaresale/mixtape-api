@@ -3,8 +3,6 @@ package com.mixtape.mixtapeapi.mixtape;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 public class MixtapeService {
     private final MixtapeRepository repository;
