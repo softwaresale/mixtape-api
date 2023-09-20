@@ -18,8 +18,7 @@ public class InvitationController {
         this.invitationService = invitationService;
     }
 
-    @GetMapping
-    @RequestMapping("/{id}")
+    @GetMapping("/{id}")
     public Invitation findInvitation(@PathVariable String id) {
         try {
             return invitationService.findById(id);
