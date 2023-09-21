@@ -13,22 +13,28 @@ import java.io.IOException;
 
 @Configuration
 public class SpotifyApiConfiguration {
+
     @Bean
-    public SpotifyApi getClientCredentialsSpotifyApi() {
+    public ClientCredentialsRequest clientCredentialsRequest() {
         return new SpotifyApi.Builder()
                 .setClientId(MixtapeApiConstants.clientId)
                 .setClientSecret(MixtapeApiConstants.clientSecret)
+                .build()
+                .clientCredentials()
                 .build();
     }
 
     @Bean
-    public ClientCredentialsRequest getClientCredentialsRequest(SpotifyApi spotifyApi) {
-        return spotifyApi.clientCredentials().build();
+    public ClientCredentials clientCredentials(ClientCredentialsRequest clientCredentialsRequest) throws IOException, ParseException, SpotifyWebApiException {
+        return clientCredentialsRequest.execute();
     }
 
     @Bean
-    public ClientCredentials getClientCredentials(ClientCredentialsRequest clientCredentialsRequest) throws IOException, ParseException, SpotifyWebApiException {
-        return clientCredentialsRequest.execute();
+    public SpotifyApi clientCredentialsSpotifyApi(ClientCredentials clientCredentials) {
+        return SpotifyApi
+                .builder()
+                .setAccessToken(clientCredentials.getAccessToken())
+                .build();
     }
 
 }
