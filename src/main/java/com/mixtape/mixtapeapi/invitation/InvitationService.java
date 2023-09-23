@@ -10,7 +10,7 @@ public class InvitationService {
         this.invitationRepository = invitationRepository;
     }
 
-    public Invitation findById(String id) {
+    public Invitation findInvitation(String id) {
         return invitationRepository.getReferenceById(id);
     }
 

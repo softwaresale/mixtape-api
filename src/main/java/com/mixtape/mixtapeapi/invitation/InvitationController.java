@@ -19,9 +19,9 @@ public class InvitationController {
     }
 
     @GetMapping("/{id}")
-    public Invitation findInvitation(@PathVariable String id) {
+    public Invitation getById(@PathVariable String id) {
         try {
-            return invitationService.findById(id);
+            return invitationService.findInvitation(id);
         } catch (EntityNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
