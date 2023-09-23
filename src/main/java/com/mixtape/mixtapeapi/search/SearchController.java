@@ -21,11 +21,6 @@ public class SearchController {
     }
 
     @GetMapping
-    public List<String> getUsers(@RequestParam String userName) {
-        return searchService.getUsersByName(userName);
-    }
-
-    @GetMapping
     public List<Track> getTracksByArtist(@RequestParam String artistName) {
         try {
             return searchService.findTracksByArtistName(artistName);

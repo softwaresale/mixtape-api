@@ -26,11 +26,6 @@ public class SearchService {
         this.spotifyApi = spotifyApi;
     }
 
-    public List<String> getUsersByName(String name) {
-        // TODO: Not sure if feasible
-        return null;
-    }
-
     public List<Track> findTracksByArtistName(String artistName) throws IOException, ParseException, SpotifyWebApiException {
         return getTracksByArtistOrAlbum(artistName, true);
     }
