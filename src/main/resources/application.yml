@@ -6,4 +6,14 @@ spring:
     password: password
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://auth.mixtape.local:9000
+
+logging:
+  level:
+    root: info
+    com.mixtape.mixtapeapi.ProtectedEndpoint: debug

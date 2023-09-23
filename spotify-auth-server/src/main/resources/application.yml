@@ -1,0 +1,44 @@
+
+server:
+  port: 9000
+  address: auth.mixtape.local
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mixtape
+    username: username
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  security:
+    oauth2:
+      client:
+        registration:
+          spotify-idp:
+            provider: spotify
+            client-id: df9bd9e5ec41469baf91e29921d605a9
+            client-secret: 1f740b22a8984436bb87e41d7fa23295
+            scope:
+              - user-read-private
+              - user-read-email
+            authorization-grant-type: authorization_code
+            client-authentication-method: client_secret_basic
+            redirect-uri: http://auth.mixtape.local:9000/login/oauth2/code/spotify-idp
+        provider:
+          spotify:
+            authorization-uri: https://accounts.spotify.com/oauth2/v2/auth
+            token-uri: https://accounts.spotify.com/api/token
+            user-info-uri: https://api.spotify.com/v1/me
+            jwk-set-uri: https://accounts.spotify.com/oidc/certs/v1
+            user-name-attribute: id
+  session:
+    jdbc:
+      table-name: spring_session
+logging:
+  level:
+    root: info
+    org.thymeleaf.TemplateEngine: info
+    jdk.event.security: error
+    org:
+      hibernate: info
