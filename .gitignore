@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### Client Credentials Flow Auth ###
-client-credentials-flow.properties
+**/client-credentials-flow.properties
