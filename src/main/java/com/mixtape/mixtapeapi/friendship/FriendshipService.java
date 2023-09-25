@@ -4,6 +4,8 @@ import com.mixtape.mixtapeapi.invitation.Invitation;
 import com.mixtape.mixtapeapi.invitation.InvitationRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
@@ -14,11 +16,11 @@ public class FriendshipService {
         this.invitationRepository = invitationRepository;
     }
 
-    public Friendship findFriendship(String id) {
-        return friendshipRepository.getReferenceById(id);
+    public Optional<Friendship> findFriendship(String id) {
+        return friendshipRepository.findById(id);
     }
 
-    public Friendship createFriendship(Invitation invitation) {
+    public Friendship createFriendshipFromInvitation(Invitation invitation) {
         // Create Friendship
         Friendship newFriendship = new Friendship(null, invitation.getInitiatorID(), invitation.getTargetID());
 
