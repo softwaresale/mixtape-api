@@ -1,5 +1,7 @@
 package com.mixtape.mixtapeapi.invitation;
 
+import com.mixtape.mixtapeapi.friendship.Friendship;
+import com.mixtape.mixtapeapi.friendship.FriendshipService;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import org.springframework.http.HttpStatus;
@@ -16,10 +18,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class InvitationController {
     private final InvitationService invitationService;
     private final PlaylistService playlistService;
+    private final FriendshipService friendshipService;
 
-    public InvitationController(InvitationService invitationService, PlaylistService playlistService) {
+    public InvitationController(InvitationService invitationService, PlaylistService playlistService, FriendshipService friendshipService) {
         this.invitationService = invitationService;
         this.playlistService = playlistService;
+        this.friendshipService = friendshipService;
     }
 
     @GetMapping("/{id}")
@@ -36,5 +40,10 @@ public class InvitationController {
     @PostMapping("/playlist")
     public Playlist createNewPlaylist(@RequestBody Invitation invitation) {
         return playlistService.createPlaylistFromInvitation(invitation);
+    }
+
+    @PostMapping("/friendship")
+    public Friendship createNewFriendship(@RequestBody Invitation invitation) {
+        return friendshipService.createFriendshipFromInvitation(invitation);
     }
 }
