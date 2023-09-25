@@ -1,9 +1,0 @@
-
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/mixtape
-    username: username
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: create
