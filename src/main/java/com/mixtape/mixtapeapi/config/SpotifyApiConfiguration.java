@@ -1,6 +1,5 @@
 package com.mixtape.mixtapeapi.config;
 
-import com.mixtape.mixtapeapi.MixtapeApiConstants;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,11 +13,17 @@ import java.io.IOException;
 @Configuration
 public class SpotifyApiConfiguration {
 
+    private final ClientConfiguration clientConfiguration;
+
+    public SpotifyApiConfiguration(ClientConfiguration clientConfiguration) {
+        this.clientConfiguration = clientConfiguration;
+    }
+
     @Bean
     public ClientCredentialsRequest clientCredentialsRequest() {
         return new SpotifyApi.Builder()
-                .setClientId(MixtapeApiConstants.clientId)
-                .setClientSecret(MixtapeApiConstants.clientSecret)
+                .setClientId(clientConfiguration.getClientId())
+                .setClientSecret(clientConfiguration.getClientSecret())
                 .build()
                 .clientCredentials()
                 .build();
