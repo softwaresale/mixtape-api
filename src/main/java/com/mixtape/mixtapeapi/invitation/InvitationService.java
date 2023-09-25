@@ -2,6 +2,8 @@ package com.mixtape.mixtapeapi.invitation;
 
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class InvitationService {
     private final InvitationRepository invitationRepository;
@@ -10,8 +12,8 @@ public class InvitationService {
         this.invitationRepository = invitationRepository;
     }
 
-    public Invitation findInvitation(String id) {
-        return invitationRepository.getReferenceById(id);
+    public Optional<Invitation> findInvitation(String id) {
+        return invitationRepository.findById(id);
     }
 
     public Invitation save(Invitation newInvitation) {

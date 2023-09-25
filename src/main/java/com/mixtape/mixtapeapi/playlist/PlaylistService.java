@@ -4,6 +4,8 @@ import com.mixtape.mixtapeapi.invitation.Invitation;
 import com.mixtape.mixtapeapi.invitation.InvitationRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
@@ -14,11 +16,11 @@ public class PlaylistService {
         this.invitationRepository = invitationRepository;
     }
 
-    public Playlist findPlaylist(String id) {
-        return playlistRepository.getReferenceById(id);
+    public Optional<Playlist> findPlaylist(String id) {
+        return playlistRepository.findById(id);
     }
 
-    public Playlist createPlaylist(Invitation invitation) {
+    public Playlist createPlaylistFromInvitation(Invitation invitation) {
         // Create Playlist
         Playlist newPlaylist = new Playlist(null, null, null, invitation.getInitiatorID(), invitation.getTargetID(), null, null);
 
@@ -29,8 +31,17 @@ public class PlaylistService {
         return playlistRepository.save(newPlaylist);
     }
 
-    public Playlist updatePlaylist(Playlist playlist) {
-        return playlistRepository.save(playlist);
+    public Optional<Playlist> updatePlaylist(Playlist playlist, String id) {
+        // Create Optional
+        Optional<Playlist> optionalPlaylist = Optional.empty();
+
+        // If exists, add to optional
+        if (playlistRepository.existsById(id)) {
+            optionalPlaylist = Optional.of(playlistRepository.save(playlist));
+        }
+
+        // Return final optional
+        return optionalPlaylist;
     }
 
 }
