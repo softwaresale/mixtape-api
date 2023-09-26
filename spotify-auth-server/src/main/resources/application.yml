@@ -5,7 +5,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/mixtape
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/mixtape
     username: username
     password: password
   jpa:
@@ -32,9 +32,6 @@ spring:
             user-info-uri: https://api.spotify.com/v1/me
             jwk-set-uri: https://accounts.spotify.com/oidc/certs/v1
             user-name-attribute: id
-  session:
-    jdbc:
-      table-name: spring_session
 logging:
   level:
     root: info
@@ -42,3 +39,5 @@ logging:
     jdk.event.security: error
     org:
       hibernate: info
+
+DB_HOST: localhost

@@ -1,7 +1,7 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/mixtape
+    url: jdbc:postgresql://${DB_PATH:localhost}:5432/mixtape
     username: username
     password: password
   jpa:
@@ -11,9 +11,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://auth.mixtape.local:9000
+          issuer-uri: http://${ISSUER_HOST:auth.mixtape.local}:9000
 
 logging:
   level:
     root: info
-    com.mixtape.mixtapeapi.ProtectedEndpoint: debug
+
+# DB_PATH: localhost
+# ISSUER_HOST: auth.mixtape.local
