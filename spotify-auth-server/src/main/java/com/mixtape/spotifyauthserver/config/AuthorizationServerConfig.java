@@ -80,7 +80,7 @@ public class AuthorizationServerConfig {
                 )
                 .exceptionHandling((exceptions) -> exceptions
                         .defaultAuthenticationEntryPointFor(
-                                new LoginUrlAuthenticationEntryPoint("/login"),
+                                new LoginUrlAuthenticationEntryPoint("/oauth2/authorization/spotify-idp"),
                                 new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
                         )
                 )

@@ -43,6 +43,9 @@ dependencies {
 
     // Store session in the database...
     // implementation 'org.springframework.session:spring-session-jdbc'
+
+    // This is JANK
+    implementation project(':')
 }
 
 tasks.named('test') {
