@@ -56,4 +56,15 @@ public class Profile {
     public void setProfilePicURL(String profilePicURL) {
         this.profilePicURL = profilePicURL;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Profile{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", spotifyUID='").append(spotifyUID).append('\'');
+        sb.append(", displayName='").append(displayName).append('\'');
+        sb.append(", profilePicURL='").append(profilePicURL).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

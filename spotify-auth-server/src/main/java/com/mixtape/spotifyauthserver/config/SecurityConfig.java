@@ -1,7 +1,7 @@
 package com.mixtape.spotifyauthserver.config;
 
 import com.mixtape.spotifyauthserver.federation.FederatedIdentityAuthenticationSuccessHandler;
-import com.mixtape.spotifyauthserver.federation.InMemoryUserRepositoryOAuth2UserHandler;
+import com.mixtape.spotifyauthserver.federation.JpaOAuth2UserHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,7 +22,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, JpaOAuth2UserHandler jpaOAuth2UserHandler) throws Exception {
         http
                 .authorizeHttpRequests(authorize ->
                         authorize
@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2Login ->
                         oauth2Login
                                 .loginPage("/login")
-                                .successHandler(authenticationSuccessHandler())
+                                .successHandler(authenticationSuccessHandler(jpaOAuth2UserHandler))
                 );
 
         return http.build();
@@ -47,9 +47,9 @@ public class SecurityConfig {
      * {@link FederatedIdentityAuthenticationSuccessHandler} for more details
      * @return AuthenticationSuccessHandler bean
      */
-    private AuthenticationSuccessHandler authenticationSuccessHandler() {
+    private AuthenticationSuccessHandler authenticationSuccessHandler(JpaOAuth2UserHandler jpaOAuth2UserHandler) {
         FederatedIdentityAuthenticationSuccessHandler handler = new FederatedIdentityAuthenticationSuccessHandler();
-        handler.setOAuth2UserHandler(new InMemoryUserRepositoryOAuth2UserHandler());
+        handler.setOAuth2UserHandler(jpaOAuth2UserHandler);
         return handler;
     }
 
