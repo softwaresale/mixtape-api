@@ -1,5 +1,7 @@
 package com.mixtape.mixtapeapi.search;
 
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -22,11 +24,16 @@ import java.util.Optional;
 public class SearchService {
     private final static int MAX_ITEMS = 50;
     private final SpotifyApi spotifyApi;
+    private final ProfileService profileService;
 
-    public SearchService(SpotifyApi spotifyApi) {
+    public SearchService(SpotifyApi spotifyApi, ProfileService profileService) {
         this.spotifyApi = spotifyApi;
+        this.profileService = profileService;
     }
 
+    public List<Profile> findUsersByDisplayName(String displayName) {
+        return profileService.findAllUsersByDisplayName(displayName);
+    }
     public Optional<List<Track>> findTracksByArtistName(String artistName) {
         try {
             return Optional.of(getTracksByArtistOrAlbum(artistName, true));
