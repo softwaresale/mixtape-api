@@ -15,7 +15,6 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.stereotype.Service;
@@ -96,11 +95,14 @@ public class ProviderTokenService {
      */
     private Optional<OAuth2AuthorizedClient> updateBearerToken(OAuth2AuthorizedClient oAuth2AuthorizedClient, String clientRegistrationId) throws ResponseStatusException {
 
-        boolean accessTokenNeedsRefreshing = Optional.ofNullable(oAuth2AuthorizedClient.getAccessToken().getExpiresAt())
+        boolean accessTokenNeedsRefreshing = Optional.ofNullable(oAuth2AuthorizedClient)
+                .flatMap(client -> Optional.ofNullable(client.getAccessToken()))
+                .map(OAuth2AccessToken::getExpiresAt)
                 .map(expiresAt -> expiresAt.compareTo(Instant.now()) < 0)
                 .orElse(false); // if there is no expiry, do nothing???
 
-        boolean refreshTokenNeedsRefreshing = Optional.ofNullable(oAuth2AuthorizedClient.getRefreshToken())
+        boolean refreshTokenNeedsRefreshing = Optional.ofNullable(oAuth2AuthorizedClient)
+                .flatMap(client -> Optional.ofNullable(client.getRefreshToken()))
                 .flatMap(token -> Optional.ofNullable(token.getExpiresAt()))
                 .map(expiresAt -> expiresAt.compareTo(Instant.now()) < 0)
                 .orElse(false);

@@ -1,5 +1,16 @@
+version: "3.9"
 
 services:
+  db:
+    image: postgres:15.4
+    environment:
+      POSTGRES_DB: mixtape
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
   api:
     image: mixtape-api:0.0.1-SNAPSHOT
     ports:
@@ -13,23 +24,29 @@ services:
     depends_on:
       - db
       - auth-server
-  db:
-    image: postgres:15.4
-    environment:
-      POSTGRES_DB: mixtape
-      POSTGRES_USER: username
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
+    networks:
+      - backend
   auth-server:
     image: spotify-auth-server:0.0.1-SNAPSHOT
     ports:
-      - target: 9000
+      - target: 9001
         published: 9000
         protocol: tcp
         mode: host
     environment:
       DB_HOST: db
-      HOSTNAME: localhost
+      SERVER_PORT: 9001
+      SERVER_ADDR: 0.0.0.0
+      EXTERNAL_PORT: 9000
     depends_on:
       - db
+    networks:
+      - backend
+networks:
+  host:
+    external: true
+  frontend:
+    driver: bridge
+  backend:
+    driver: overlay
+    attachable: true
