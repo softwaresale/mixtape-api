@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class SearchService {
@@ -26,15 +27,61 @@ public class SearchService {
         this.spotifyApi = spotifyApi;
     }
 
-    public List<Track> findTracksByArtistName(String artistName) throws IOException, ParseException, SpotifyWebApiException {
-        return getTracksByArtistOrAlbum(artistName, true);
+    public Optional<List<Track>> findTracksByArtistName(String artistName) {
+        try {
+            return Optional.of(getTracksByArtistOrAlbum(artistName, true));
+        } catch (IOException | ParseException | SpotifyWebApiException e) {
+            return Optional.empty();
+        }
     }
 
-    public List<Track> findTracksByAlbumName(String albumName) throws IOException, ParseException, SpotifyWebApiException {
-        return getTracksByArtistOrAlbum(albumName, false);
+    public Optional<List<Track>> findTracksByAlbumName(String albumName) {
+        try {
+            return Optional.of(getTracksByArtistOrAlbum(albumName, false));
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            return Optional.empty();
+        }
     }
 
-    public List<Track> findTracksByPlaylistName(String playlistName) throws IOException, ParseException, SpotifyWebApiException {
+    public Optional<List<Track>> findTracksByPlaylistName(String playlistName) {
+        try {
+            return Optional.of(getTracksByPlaylist(playlistName));
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            return Optional.empty();
+        }
+    }
+
+    private List<Track> getTracksByArtistOrAlbum(String name, boolean artist) throws IOException, ParseException, SpotifyWebApiException {
+        // Create query string, offset counter, and list to return
+        String query = String.format("%%20%s%s", artist ? "artist" : "album", name);
+        int counter = 0;
+        List<Track> tracks = new ArrayList<>();
+
+        // Setup paging request
+        Paging<Track> pageOfTracks = spotifyApi
+                .searchTracks(query)
+                .limit(MAX_ITEMS)
+                .offset(0)
+                .build()
+                .execute();
+
+        // Request until complete
+        while (pageOfTracks != null) {
+            // Append to tracks
+            Arrays.asList(pageOfTracks.getItems())
+                    .forEach(tracks::add);
+
+            // Update pageOfTracks to null if none left or re-query
+            pageOfTracks = pageOfTracks.getNext() == null ?
+                    null :
+                    getNextItemSet(query, ModelObjectType.TRACK.getType(), ++counter).getTracks();
+        }
+
+        // Return filled out tracks
+        return tracks;
+    }
+
+    private List<Track> getTracksByPlaylist(String playlistName) throws IOException, ParseException, SpotifyWebApiException {
         // Setup paging request
         Paging<PlaylistSimplified> pageOfPlaylist = spotifyApi
                 .searchPlaylists(playlistName)
@@ -77,36 +124,6 @@ public class SearchService {
         }
 
         // Return all tracks found
-        return tracks;
-    }
-
-    private List<Track> getTracksByArtistOrAlbum(String name, boolean artist) throws IOException, ParseException, SpotifyWebApiException {
-        // Create query string, offset counter, and list to return
-        String query = String.format("%%20%s%s", artist ? "artist" : "album", name);
-        int counter = 0;
-        List<Track> tracks = new ArrayList<>();
-
-        // Setup paging request
-        Paging<Track> pageOfTracks = spotifyApi
-                .searchTracks(query)
-                .limit(MAX_ITEMS)
-                .offset(0)
-                .build()
-                .execute();
-
-        // Request until complete
-        while (pageOfTracks != null) {
-            // Append to tracks
-            Arrays.asList(pageOfTracks.getItems())
-                    .forEach(tracks::add);
-
-            // Update pageOfTracks to null if none left or re-query
-            pageOfTracks = pageOfTracks.getNext() == null ?
-                    null :
-                    getNextItemSet(query, ModelObjectType.TRACK.getType(), ++counter).getTracks();
-        }
-
-        // Return filled out tracks
         return tracks;
     }
 

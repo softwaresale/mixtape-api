@@ -1,14 +1,13 @@
 package com.mixtape.mixtapeapi.search;
 
-import org.apache.hc.core5.http.ParseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import org.springframework.web.server.ResponseStatusException;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,29 +20,18 @@ public class SearchController {
     }
 
     @GetMapping
-    public List<Track> getTracksByArtist(@RequestParam String artistName) {
-        try {
-            return searchService.findTracksByArtistName(artistName);
-        } catch (IOException | ParseException | SpotifyWebApiException e) {
-            throw new RuntimeException(e);
+    public List<Track> getTracksByQueryParam(@RequestParam String artistName, @RequestParam String albumName, @RequestParam String playlistName) {
+        if (artistName != null && albumName == null && playlistName == null) {
+            return searchService.findTracksByArtistName(artistName)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
+        } else if (artistName == null && albumName != null && playlistName == null) {
+            return searchService.findTracksByAlbumName(albumName)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
+        } else if (artistName == null && albumName == null && playlistName != null) {
+            return searchService.findTracksByPlaylistName(playlistName)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
         }
-    }
 
-    @GetMapping
-    public List<Track> getTracksByAlbum(@RequestParam String albumName) {
-        try {
-            return searchService.findTracksByAlbumName(albumName);
-        } catch (IOException | ParseException | SpotifyWebApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @GetMapping
-    public List<Track> getTracksByPlaylist(@RequestParam String playlistName) {
-        try {
-            return searchService.findTracksByPlaylistName(playlistName);
-        } catch (IOException | ParseException | SpotifyWebApiException e) {
-            throw new RuntimeException(e);
-        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
     }
 }
