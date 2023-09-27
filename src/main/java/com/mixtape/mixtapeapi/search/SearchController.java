@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.search;
 
+import com.mixtape.mixtapeapi.profile.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,7 @@ public class SearchController {
         this.searchService = searchService;
     }
 
-    @GetMapping
+    @GetMapping("/tracks")
     public List<Track> getTracksByQueryParam(@RequestParam String artistName, @RequestParam String albumName, @RequestParam String playlistName) {
         if (artistName != null && albumName == null && playlistName == null) {
             return searchService.findTracksByArtistName(artistName)
@@ -33,5 +34,13 @@ public class SearchController {
         }
 
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+    }
+
+    @GetMapping("/users")
+    public List<Profile> getUsersByName(@RequestParam String displayName) {
+        // Check for param
+        if (displayName == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+
+        return searchService.findUsersByDisplayName(displayName);
     }
 }

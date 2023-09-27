@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -50,5 +51,9 @@ public class ProfileService {
         }
 
         return Optional.ofNullable(firstImageObject.getValue().get(0));
+    }
+
+    public List<Profile> findAllUsersByDisplayName(String displayName) {
+        return repository.getAllByDisplayName(displayName);
     }
 }
