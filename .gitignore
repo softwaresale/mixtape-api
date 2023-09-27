@@ -36,5 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 
-### Client Credentials Flow Auth ###
-**/client-credentials-flow.properties
+### Postgres ###
+/postgres.sh
