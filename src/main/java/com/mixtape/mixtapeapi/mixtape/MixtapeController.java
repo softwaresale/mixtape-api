@@ -1,6 +1,5 @@
 package com.mixtape.mixtapeapi.mixtape;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,16 +28,14 @@ public class MixtapeController {
 
     @GetMapping("/{id}")
     public Mixtape getById(@PathVariable String id) {
-        try {
-            return mixtapeService.findMixtape(id);
-        } catch (EntityNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
+        return mixtapeService.findMixtape(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PutMapping("/{id}")
-    public Mixtape update(@RequestBody Mixtape mixtape) {
-        return mixtapeService.save(mixtape);
+    public Mixtape update(@RequestBody Mixtape mixtape, @PathVariable String id) {
+        return mixtapeService.updateMixtape(mixtape, id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
 }

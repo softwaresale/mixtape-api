@@ -3,19 +3,33 @@ package com.mixtape.mixtapeapi.mixtape;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class MixtapeService {
-    private final MixtapeRepository repository;
+    private final MixtapeRepository mixtapeRepository;
 
-    public MixtapeService(MixtapeRepository repository) {
-        this.repository = repository;
+    public MixtapeService(MixtapeRepository mixtapeRepository) {
+        this.mixtapeRepository = mixtapeRepository;
     }
 
-    public Mixtape findMixtape(String id) throws EntityNotFoundException {
-        return repository.getReferenceById(id);
+    public Optional<Mixtape> findMixtape(String id) throws EntityNotFoundException {
+        return mixtapeRepository.findById(id);
     }
 
     public Mixtape save(Mixtape newMixtape) {
-        return repository.save(newMixtape);
+        return mixtapeRepository.save(newMixtape);
+    }
+    public Optional<Mixtape> updateMixtape(Mixtape mixtape, String id) {
+        // Create Optional
+        Optional<Mixtape> optionalMixtape = Optional.empty();
+
+        // If exists, add to optional
+        if (mixtapeRepository.existsById(id)) {
+            optionalMixtape = Optional.of(mixtapeRepository.save(mixtape));
+        }
+
+        // Return final optional
+        return optionalMixtape;
     }
 }
