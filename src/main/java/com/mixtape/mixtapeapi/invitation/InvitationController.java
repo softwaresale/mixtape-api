@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.invitation;
 
+import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,12 @@ public class InvitationController {
     @PostMapping("/{id}/playlist")
     public Playlist createNewPlaylist(@PathVariable String id) {
         return invitationService.createPlaylistFromInvitationId(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+    }
+
+    @PostMapping("/{id}/friendship")
+    public Friendship createNewFriendship(@PathVariable String id) {
+        return invitationService.createFriendshipFromInvitationId(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
     }
 }
