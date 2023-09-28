@@ -20,6 +20,7 @@ public class MixtapeService {
     public Mixtape save(Mixtape newMixtape) {
         return mixtapeRepository.save(newMixtape);
     }
+
     public Optional<Mixtape> updateMixtape(Mixtape mixtape, String id) {
         // Create Optional
         Optional<Mixtape> optionalMixtape = Optional.empty();

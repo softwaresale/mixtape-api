@@ -21,8 +21,6 @@ public class MixtapeController {
 
     @PostMapping
     public Mixtape createNew(@RequestBody Mixtape newMixtape) {
-        // TODO: Add functionality to add (or create) collaborative playlist in spotify
-
         return mixtapeService.save(newMixtape);
     }
 
