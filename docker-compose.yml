@@ -1,6 +1,19 @@
 version: "3.9"
 
 services:
+  proxy:
+    image: mixtape-proxy:0.0.1
+    ports:
+      - target: 80
+        published: 8081
+        protocol: tcp
+        mode: host
+    networks:
+      - backend
+    depends_on:
+      - auth-server
+      - db
+      - api
   db:
     image: postgres:15.4
     environment:
@@ -12,7 +25,7 @@ services:
     networks:
       - backend
   api:
-    image: softwaresale/mixtape-api:latest
+    image: mixtape-api:0.0.1-SNAPSHOT
     ports:
       - target: 8080
         published: 8080
@@ -27,17 +40,21 @@ services:
     networks:
       - backend
   auth-server:
-    image: softwaresale/spotify-auth-server:latest
+    image: spotify-auth-server:0.0.1-SNAPSHOT
     ports:
       - target: 9001
         published: 9000
         protocol: tcp
         mode: host
+      - target: 9001
+        published: 9001
+        protocol: tcp
+        mode: ingress
     environment:
       DB_HOST: db
       SERVER_PORT: 9001
-      SERVER_ADDR: 0.0.0.0
-      EXTERNAL_PORT: 9000
+      # SERVER_ADDR: 0.0.0.0
+      # EXTERNAL_PORT: 9000
     depends_on:
       - db
     networks:
