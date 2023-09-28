@@ -1,7 +1,7 @@
 
 server:
   port: ${SERVER_PORT}
-  address: ${SERVER_ADDR}
+  forward-headers-strategy: native
 
 spring:
   datasource:
@@ -24,7 +24,7 @@ spring:
               - user-read-email
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_basic
-            redirect-uri: http://127.0.0.1:${EXTERNAL_PORT}/login/oauth2/code/spotify-idp
+            redirect-uri: http://auth.localhost:8081/login/oauth2/code/spotify-idp
         provider:
           spotify:
             authorization-uri: https://accounts.spotify.com/oauth2/v2/auth

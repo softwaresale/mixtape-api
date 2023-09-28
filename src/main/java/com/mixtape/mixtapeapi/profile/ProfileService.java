@@ -2,6 +2,7 @@ package com.mixtape.mixtapeapi.profile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -33,24 +34,25 @@ public class ProfileService {
         logger.info("Creating profile for first time user {}", oauth2User);
         String spotifyId = oauth2User.getName();
         String displayName = oauth2User.getAttribute("display_name");
-        ArrayList<Object> imagesObj = oauth2User.getAttribute("images");
-        Optional<String> profilePic = getFirstProfilePic(imagesObj);
+        ArrayList<Map<String, Object>> imagesObjs = oauth2User.getAttribute("images");
+        Optional<String> profilePic = getFirstProfilePic(imagesObjs);
 
         Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
         return repository.save(newProfile);
     }
 
-    private Optional<String> getFirstProfilePic(ArrayList<Object> imageObjects) {
+    private Optional<String> getFirstProfilePic(@Nullable ArrayList<Map<String, Object>> imageObjects) {
+        if (imageObjects == null) {
+            return Optional.empty();
+        }
+
         if (imageObjects.isEmpty()) {
             return Optional.empty();
         }
 
-        var firstImageObject = (Map.Entry<String, ArrayList<String>>) imageObjects.get(0);
-        if (firstImageObject.getValue().isEmpty()) {
-            return Optional.empty();
-        }
-
-        return Optional.ofNullable(firstImageObject.getValue().get(0));
+        var firstImageObject = imageObjects.get(0);
+        return Optional.ofNullable(firstImageObject.get("url"))
+                .map(obj -> (String) obj);
     }
 
     public List<Profile> findAllUsersByDisplayName(String displayName) {
