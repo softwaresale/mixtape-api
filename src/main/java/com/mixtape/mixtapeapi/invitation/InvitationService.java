@@ -28,6 +28,17 @@ public class InvitationService {
         return invitationRepository.save(newInvitation);
     }
 
+    public Optional<Invitation> deleteInvitation(String id) {
+        // Try to find invitation
+        Optional<Invitation> optionalInvitation = findInvitation(id);
+
+        // Delete if exists
+        invitationRepository.deleteById(id);
+
+        // Return optional (empty if does not exist)
+        return optionalInvitation;
+    }
+
     public Optional<Playlist> createPlaylistFromInvitationId(String id) {
         // Grab invitation
         Optional<Invitation> invitation = findInvitation(id);

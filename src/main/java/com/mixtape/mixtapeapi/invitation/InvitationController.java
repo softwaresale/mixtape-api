@@ -3,6 +3,7 @@ package com.mixtape.mixtapeapi.invitation;
 import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,15 +31,21 @@ public class InvitationController {
         return invitationService.save(newInvitation);
     }
 
+    @DeleteMapping("/{id}")
+    public Invitation deleteById(@PathVariable String id) {
+        return invitationService.deleteInvitation(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
     @PostMapping("/{id}/playlist")
     public Playlist createNewPlaylist(@PathVariable String id) {
         return invitationService.createPlaylistFromInvitationId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/{id}/friendship")
     public Friendship createNewFriendship(@PathVariable String id) {
         return invitationService.createFriendshipFromInvitationId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }
