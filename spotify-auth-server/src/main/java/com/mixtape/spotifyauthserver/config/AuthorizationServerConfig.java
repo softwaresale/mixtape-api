@@ -106,7 +106,7 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .redirectUri("http://127.0.0.1:8081/login/oauth2/code/spotify-client")
                 .redirectUri("http://127.0.0.1:8081/authorized")
-                .redirectUri("com.mixtape//callback")
+                .redirectUri("oauth2://com.mixtape/callback")
                 .postLogoutRedirectUri("http://127.0.0.1:8081/logged-out")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
