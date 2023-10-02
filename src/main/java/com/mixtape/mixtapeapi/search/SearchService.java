@@ -3,7 +3,10 @@ package com.mixtape.mixtapeapi.search;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.apache.hc.core5.http.ParseException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.server.ResponseStatusException;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
@@ -39,6 +42,16 @@ public class SearchService {
             return Optional.of(getTracksByArtistOrAlbum(artistName, true));
         } catch (IOException | ParseException | SpotifyWebApiException e) {
             return Optional.empty();
+        }
+    }
+
+    public List<Track> findTracksByName(String trackName) {
+        try {
+            return getTracksByName(trackName);
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        } catch (SpotifyWebApiException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error while communicating with spotify");
         }
     }
 
@@ -86,6 +99,17 @@ public class SearchService {
 
         // Return filled out tracks
         return tracks;
+    }
+
+    private List<Track> getTracksByName(String trackName) throws IOException, ParseException, SpotifyWebApiException {
+        Paging<Track> results = spotifyApi
+                .searchTracks(trackName)
+                .limit(MAX_ITEMS)
+                .offset(0)
+                .build()
+                .execute();
+
+        return Arrays.asList(results.getItems());
     }
 
     private List<Track> getTracksByPlaylist(String playlistName) throws IOException, ParseException, SpotifyWebApiException {

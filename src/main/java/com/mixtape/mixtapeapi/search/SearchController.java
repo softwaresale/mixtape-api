@@ -21,7 +21,14 @@ public class SearchController {
     }
 
     @GetMapping("/tracks")
-    public List<Track> getTracksByQueryParam(@RequestParam String artistName, @RequestParam String albumName, @RequestParam String playlistName) {
+    public List<Track> getTracksByQueryParam(@RequestParam(required = false) String trackName, @RequestParam(required = false) String artistName, @RequestParam(required = false) String albumName, @RequestParam(required = false) String playlistName) {
+        if (trackName != null) {
+            if (trackName.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Track name must not be blank");
+            }
+
+            return searchService.findTracksByName(trackName);
+        }
         if (artistName != null && albumName == null && playlistName == null) {
             return searchService.findTracksByArtistName(artistName)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
