@@ -20,6 +20,10 @@ public class PlaylistService {
         return playlistRepository.findById(id);
     }
 
+    public Playlist save(Playlist playlist) {
+        return playlistRepository.save(playlist);
+    }
+
     public Playlist createPlaylistFromInvitation(Invitation invitation) {
         // Create Playlist
         Playlist newPlaylist = new Playlist(null, null, null, invitation.getInitiatorID(), invitation.getTargetID(), null, null);

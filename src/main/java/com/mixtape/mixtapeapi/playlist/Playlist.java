@@ -1,9 +1,9 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.mixtape.Mixtape;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Playlist {
@@ -18,8 +18,10 @@ public class Playlist {
     private String description;
     private String coverPicURL;
 
-    public Playlist() {
+    @OneToMany
+    private List<Mixtape> mixtapes;
 
+    public Playlist() {
     }
 
     public Playlist(String id, String spotifyID, String name, String initiatorID, String targetID, String description, String coverPicURL) {
@@ -86,6 +88,20 @@ public class Playlist {
 
     public void setCoverPicURL(String coverPicURL) {
         this.coverPicURL = coverPicURL;
+    }
+
+    public List<Mixtape> getMixtapes() {
+        return mixtapes;
+    }
+
+    public void setMixtapes(List<Mixtape> mixtapes) {
+        mixtapes.forEach(mixtape -> mixtape.setParentPlaylistId(this.id));
+        this.mixtapes = mixtapes;
+    }
+
+    public void addMixtape(Mixtape mixtape) {
+        mixtape.setParentPlaylistId(this.id);
+        this.mixtapes.add(mixtape);
     }
 }
 
