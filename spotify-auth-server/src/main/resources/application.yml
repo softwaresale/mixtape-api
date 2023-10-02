@@ -34,7 +34,7 @@ spring:
             user-name-attribute: id
 logging:
   level:
-    root: info
+    root: debug
     org.thymeleaf.TemplateEngine: info
     jdk.event.security: error
     org:

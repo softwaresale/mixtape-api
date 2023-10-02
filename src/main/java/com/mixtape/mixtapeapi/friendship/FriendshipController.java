@@ -21,5 +21,4 @@ public class FriendshipController {
         return friendshipService.findFriendship(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
-
 }

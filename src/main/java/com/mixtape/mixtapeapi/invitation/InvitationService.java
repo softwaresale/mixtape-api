@@ -4,7 +4,12 @@ import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.friendship.FriendshipService;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.ProfileService;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -13,15 +18,28 @@ public class InvitationService {
     private final InvitationRepository invitationRepository;
     private final PlaylistService playlistService;
     private final FriendshipService friendshipService;
+    private final ProfileService profileService;
 
-    public InvitationService(InvitationRepository invitationRepository, PlaylistService playlistService, FriendshipService friendshipService) {
+
+    public InvitationService(InvitationRepository invitationRepository, PlaylistService playlistService, FriendshipService friendshipService, ProfileService profileService) {
         this.invitationRepository = invitationRepository;
         this.playlistService = playlistService;
         this.friendshipService = friendshipService;
+        this.profileService = profileService;
     }
 
     public Optional<Invitation> findInvitation(String id) {
         return invitationRepository.findById(id);
+    }
+
+    public Invitation createNewInvitation(InvitationDTOs.Create newInvitation) {
+        Profile initiator = profileService.findProfile(newInvitation.getInitiatorId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Initiator not found"));
+        Profile target = profileService.findProfile(newInvitation.getTargetId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Target not found"));
+
+        Invitation entity = new Invitation(null, initiator, target, newInvitation.getInvitationType());
+        return invitationRepository.save(entity);
     }
 
     public Invitation save(Invitation newInvitation) {
@@ -47,7 +65,9 @@ public class InvitationService {
         if (invitation.isEmpty()) return Optional.empty();
 
         // Call playlist service to complete work
-        return Optional.of(playlistService.createPlaylistFromInvitation(invitation.get()));
+        Playlist newPlaylist = playlistService.createPlaylistFromInvitation(invitation.get());
+        delete(invitation.get());
+        return Optional.of(newPlaylist);
     }
 
     public Optional<Friendship> createFriendshipFromInvitationId(String id) {
@@ -58,6 +78,13 @@ public class InvitationService {
         if (invitation.isEmpty()) return Optional.empty();
 
         // Call playlist service to complete work
-        return Optional.of(friendshipService.createFriendshipFromInvitation(invitation.get()));
+        Friendship newFriendship = friendshipService.createFriendshipFromInvitation(invitation.get());
+        delete(invitation.get());
+
+        return Optional.of(newFriendship);
+    }
+
+    public void delete(Invitation invitation) {
+        this.invitationRepository.delete(invitation);
     }
 }

@@ -2,6 +2,7 @@ package com.mixtape.mixtapeapi.playlist;
 
 import com.mixtape.mixtapeapi.invitation.Invitation;
 import com.mixtape.mixtapeapi.invitation.InvitationRepository;
+import com.mixtape.mixtapeapi.invitation.InvitationService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -9,11 +10,9 @@ import java.util.Optional;
 @Service
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
-    private final InvitationRepository invitationRepository;
 
-    public PlaylistService(PlaylistRepository playlistRepository, InvitationRepository invitationRepository) {
+    public PlaylistService(PlaylistRepository playlistRepository) {
         this.playlistRepository = playlistRepository;
-        this.invitationRepository = invitationRepository;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -26,10 +25,8 @@ public class PlaylistService {
 
     public Playlist createPlaylistFromInvitation(Invitation invitation) {
         // Create Playlist
-        Playlist newPlaylist = new Playlist(null, null, null, invitation.getInitiatorID(), invitation.getTargetID(), null, null);
-
-        // Delete Invitation
-        invitationRepository.delete(invitation);
+        String defaultName = String.format("%s and %s's playlist", invitation.getInitiator().getDisplayName(), invitation.getTarget().getDisplayName());
+        Playlist newPlaylist = new Playlist(null, null, defaultName, invitation.getInitiator(), invitation.getTarget(), null, null);
 
         // Save to repository
         return playlistRepository.save(newPlaylist);
