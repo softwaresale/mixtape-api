@@ -34,6 +34,7 @@ services:
     environment:
       DB_PATH: db
       ISSUER_HOST: auth-server
+      ISSUER_PORT: 9001
     depends_on:
       - db
       - auth-server

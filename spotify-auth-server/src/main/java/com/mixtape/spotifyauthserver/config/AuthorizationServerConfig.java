@@ -106,16 +106,29 @@ public class AuthorizationServerConfig {
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
                 .redirectUri("http://127.0.0.1:8081/login/oauth2/code/spotify-client")
                 .redirectUri("http://127.0.0.1:8081/authorized")
-                .redirectUri("oauth2://com.mixtape/callback")
                 .postLogoutRedirectUri("http://127.0.0.1:8081/logged-out")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
                 .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
                 .build();
 
+        RegisteredClient appClient = RegisteredClient.withId(UUID.randomUUID().toString())
+                .clientId("mixtape-flutter")
+                .clientSecret("{noop}secret")
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+                .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .redirectUri("com.mixtape://callback")
+                .scope(OidcScopes.OPENID)
+                .scope(OidcScopes.PROFILE)
+                // .clientSettings(ClientSettings.builder().requireAuthorizationConsent(true).build())
+                .build();
+
         // Save registered client's in db as if in-memory
         JpaRegisteredClientRepository registeredClientRepository = new JpaRegisteredClientRepository(clientRepository);
         registeredClientRepository.save(registeredClient);
+        registeredClientRepository.save(appClient);
 
         return registeredClientRepository;
     }
@@ -176,6 +189,7 @@ public class AuthorizationServerConfig {
     @Bean
     public AuthorizationServerSettings authorizationServerSettings() {
         return AuthorizationServerSettings.builder()
+                .issuer("http://auth-server:9001")
                 .build();
     }
 }
