@@ -13,14 +13,13 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JpaOAuth2AuthorizedClientServiceTest {
 
     @Mock
-    JpaAuthorizedClientRepository mockAuthorizedClientRepository;
+    JpaAuthorizedClientService mockAuthorizedClientService;
     @Mock
     ClientRegistrationRepository mockClientRegistrationRepository;
 
@@ -28,7 +27,7 @@ class JpaOAuth2AuthorizedClientServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new JpaOAuth2AuthorizedClientService(mockAuthorizedClientRepository, mockClientRegistrationRepository);
+        service = new JpaOAuth2AuthorizedClientService(mockAuthorizedClientService, mockClientRegistrationRepository);
     }
 
     @Test
@@ -47,7 +46,7 @@ class JpaOAuth2AuthorizedClientServiceTest {
                 .authorizationUri("authorization://uri")
                 .tokenUri("token://uri")
                 .build();
-        when(mockAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockAuthorizedClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.of(mockClient));
         when(mockClientRegistrationRepository.findByRegistrationId(clientRegistrationId))
                 .thenReturn(mockClientRegistration);
@@ -58,7 +57,7 @@ class JpaOAuth2AuthorizedClientServiceTest {
         assertThat(client.getPrincipalName()).isEqualTo(principalName);
         assertThat(client.getAccessToken().getTokenValue()).isEqualTo(providerTokenValue);
         assertThat(client.getClientRegistration().getClientId()).isEqualTo(clientRegistrationId);
-        verify(mockAuthorizedClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockAuthorizedClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository).findByRegistrationId(clientRegistrationId);
     }
 
@@ -66,13 +65,13 @@ class JpaOAuth2AuthorizedClientServiceTest {
     void loadAuthorizedClient_returnsNull_whenEntityDoesntExist() {
         String clientRegistrationId = "client-reg";
         String principalName = "prince";
-        when(mockAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockAuthorizedClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.empty());
 
         OAuth2AuthorizedClient client = service.loadAuthorizedClient(clientRegistrationId, principalName);
 
         assertThat(client).isNull();
-        verify(mockAuthorizedClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockAuthorizedClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository, times(0)).findByRegistrationId(any());
     }
 
@@ -83,7 +82,7 @@ class JpaOAuth2AuthorizedClientServiceTest {
         String providerTokenValue = "provider-token";
         AuthorizedClient mockClient = new AuthorizedClient();
         mockClient.setProviderToken(providerTokenValue);
-        when(mockAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockAuthorizedClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.of(mockClient));
         when(mockClientRegistrationRepository.findByRegistrationId(clientRegistrationId))
                 .thenReturn(null);
@@ -91,7 +90,7 @@ class JpaOAuth2AuthorizedClientServiceTest {
         OAuth2AuthorizedClient client = service.loadAuthorizedClient(clientRegistrationId, principalName);
 
         assertThat(client).isNull();
-        verify(mockAuthorizedClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockAuthorizedClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository).findByRegistrationId(clientRegistrationId);
     }
 }

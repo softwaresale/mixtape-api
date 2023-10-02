@@ -25,12 +25,12 @@ public class JpaOAuth2AuthorizedClientService implements OAuth2AuthorizedClientS
 
     private final static Logger logger = LoggerFactory.getLogger(JpaOAuth2AuthorizedClientService.class);
 
-    private final JpaAuthorizedClientRepository authorizedClientRepository;
+    private final JpaAuthorizedClientService authorizedClientService;
     private final ClientRegistrationRepository clientRegistrationRepository;
 
-    public JpaOAuth2AuthorizedClientService(JpaAuthorizedClientRepository authorizedClientRepository,
+    public JpaOAuth2AuthorizedClientService(JpaAuthorizedClientService authorizedClientService,
                                             ClientRegistrationRepository clientRegistrationRepository) {
-        this.authorizedClientRepository = authorizedClientRepository;
+        this.authorizedClientService = authorizedClientService;
         this.clientRegistrationRepository = clientRegistrationRepository;
     }
 
@@ -38,8 +38,8 @@ public class JpaOAuth2AuthorizedClientService implements OAuth2AuthorizedClientS
     public <T extends OAuth2AuthorizedClient> T loadAuthorizedClient(String clientRegistrationId, String principalName) {
         logger.debug("loading authorized client: client registration {}, principal id {}", clientRegistrationId, principalName);
 
-        Optional<AuthorizedClient> authorizedClient = authorizedClientRepository
-                .findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        Optional<AuthorizedClient> authorizedClient = authorizedClientService
+                .getMostRecentExclusive(clientRegistrationId, principalName);
         if (authorizedClient.isEmpty()) {
             return null;
         }
@@ -60,13 +60,12 @@ public class JpaOAuth2AuthorizedClientService implements OAuth2AuthorizedClientS
         logger.debug("saving new authorized client: client registration {}, principal id {}", authorizedClient.getClientRegistration().getClientId(), principal.getName());
         AuthorizedClient authClientEntity = AuthorizedClientUtils
                 .convertOAuth2AuthorizedClientToAuthorizedClient(authorizedClient, principal);
-
-        this.authorizedClientRepository.save(authClientEntity);
+        this.authorizedClientService.saveExclusive(authClientEntity);
     }
 
     @Override
     public void removeAuthorizedClient(String clientRegistrationId, String principalName) {
         logger.debug("removing authorized client: client registration {}, principal id {}", clientRegistrationId, principalName);
-        this.authorizedClientRepository.removeByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        this.authorizedClientService.remove(clientRegistrationId, principalName);
     }
 }

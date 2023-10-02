@@ -44,16 +44,16 @@ public class ProviderTokenService {
 
     private final static Logger logger = LoggerFactory.getLogger(ProviderTokenService.class);
 
-    private final JpaAuthorizedClientRepository jpaAuthorizedClientRepository;
+    private final JpaAuthorizedClientService jpaAuthorizedClientService;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final RestTemplate defaultRestTemplate;
 
-    public ProviderTokenService(JpaAuthorizedClientRepository jpaAuthorizedClientRepository,
+    public ProviderTokenService(JpaAuthorizedClientService jpaAuthorizedClientService,
                                 OAuth2AuthorizedClientService authorizedClientService,
                                 ClientRegistrationRepository clientRegistrationRepository,
                                 RestTemplate defaultRestTemplate) {
-        this.jpaAuthorizedClientRepository = jpaAuthorizedClientRepository;
+        this.jpaAuthorizedClientService = jpaAuthorizedClientService;
         this.authorizedClientService = authorizedClientService;
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.defaultRestTemplate = defaultRestTemplate;
@@ -130,7 +130,7 @@ public class ProviderTokenService {
             authorizedClient.setProviderToken(refreshedTokenResponse.getAccessToken());
             authorizedClient.setExpiresAt(Instant.now().plus(Duration.ofSeconds(refreshedTokenResponse.getExpiresIn())));
 
-            AuthorizedClient updateEntity = jpaAuthorizedClientRepository.save(authorizedClient);
+            AuthorizedClient updateEntity = jpaAuthorizedClientService.saveExclusive(authorizedClient);
 
             // Just use the original service. I know there's an unnecessary request here...
             return Optional.of(AuthorizedClientUtils.convertAuthorizedClientToOAuth2AuthorizedClient(updateEntity, clientRegistration));
@@ -143,7 +143,7 @@ public class ProviderTokenService {
     }
 
     private Optional<AuthorizedClient> mapOAuth2AuthorizedClientToEntity(OAuth2AuthorizedClient authorizedClient) {
-        return jpaAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(authorizedClient.getClientRegistration().getClientId(), authorizedClient.getPrincipalName());
+        return jpaAuthorizedClientService.getMostRecentExclusive(authorizedClient.getClientRegistration().getClientId(), authorizedClient.getPrincipalName());
     }
 
     /**

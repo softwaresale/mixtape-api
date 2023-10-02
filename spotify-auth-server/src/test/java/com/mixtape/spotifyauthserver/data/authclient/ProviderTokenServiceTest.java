@@ -59,10 +59,10 @@ class ProviderTokenServiceTest {
     AuthorizedClient mockAuthorizedClientEntity;
 
     @Mock
-    JpaAuthorizedClientRepository mockAuthorizedClientRepository;
+    JpaAuthorizedClientService mockAuthorizedClientService;
 
     @Mock
-    OAuth2AuthorizedClientService mockAuthorizedClientService;
+    OAuth2AuthorizedClientService mockOAuth2AuthorizedClientService;
 
     @Mock
     ClientRegistrationRepository mockClientRegistrationRepository;
@@ -74,7 +74,7 @@ class ProviderTokenServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ProviderTokenService(mockAuthorizedClientRepository, mockAuthorizedClientService, mockClientRegistrationRepository, mockRestTemplate);
+        service = new ProviderTokenService(mockAuthorizedClientService, mockOAuth2AuthorizedClientService, mockClientRegistrationRepository, mockRestTemplate);
         mockRegisteredClient = RegisteredClient.withId(MOCK_CLIENT_REGISTRATION_ID)
                 .clientId(MOCK_CLIENT_REGISTRATION_ID)
                 .clientSecret(MOCK_CLIENT_SECRET)
@@ -123,14 +123,14 @@ class ProviderTokenServiceTest {
 
     @Test
     void getProviderTokenForUser_success_whenTokenExistsAndIsValid() {
-        when(mockAuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockOAuth2AuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(mockAuthorizedClient);
 
         Optional<String> providerToken = service.getProviderTokenForUser(mockAuthorization);
 
         assertThat(providerToken).hasValue(MOCK_ACCESS_TOKEN_VALUE);
-        verify(mockAuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
-        verify(mockAuthorizedClientRepository, times(0)).findByClientRegistrationIdAndPrincipalUserId(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockOAuth2AuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockAuthorizedClientService, times(0)).getMostRecentExclusive(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
     }
 
     @Test
@@ -163,24 +163,24 @@ class ProviderTokenServiceTest {
         refreshResponse.setAccessToken(MOCK_REFRESHED_ACCESS_TOKEN);
         refreshResponse.setExpiresIn(3600);
 
-        when(mockAuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockOAuth2AuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(mockAuthorizedClient);
-        when(mockAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockAuthorizedClientService.getMostRecentExclusive(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(Optional.of(mockAuthorizedClientEntity));
         when(mockClientRegistrationRepository.findByRegistrationId(MOCK_CLIENT_IDP_ID))
                 .thenReturn(mockClientRegistration);
         when(mockRestTemplate.postForEntity(eq(MOCK_TOKEN_URI), any(), eq(ProviderTokenService.RefreshSpotifyTokenResponse.class)))
                 .thenReturn(new ResponseEntity<>(refreshResponse, HttpStatus.OK));
-        when(mockAuthorizedClientRepository.save(any(AuthorizedClient.class)))
+        when(mockAuthorizedClientService.saveExclusive(any(AuthorizedClient.class)))
                 .then(answer -> answer.getArguments()[0]); // return the called value
 
         Optional<String> providerToken = service.getProviderTokenForUser(mockAuthorization);
 
         assertThat(providerToken).hasValue(MOCK_REFRESHED_ACCESS_TOKEN);
-        verify(mockAuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
-        verify(mockAuthorizedClientRepository).findByClientRegistrationIdAndPrincipalUserId(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockOAuth2AuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockAuthorizedClientService).getMostRecentExclusive(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
         verify(mockClientRegistrationRepository).findByRegistrationId(MOCK_CLIENT_IDP_ID);
-        verify(mockAuthorizedClientRepository).save(any(AuthorizedClient.class));
+        verify(mockAuthorizedClientService).saveExclusive(any(AuthorizedClient.class));
         verify(mockRestTemplate).postForEntity(
                 MOCK_TOKEN_URI,
                 Map.of(
@@ -215,7 +215,7 @@ class ProviderTokenServiceTest {
         mockAuthorizedClientEntity = AuthorizedClientUtils
                 .convertOAuth2AuthorizedClientToAuthorizedClient(mockAuthorizedClient, new MockAuthentication(MOCK_PRINCIPAL_NAME));
 
-        when(mockAuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockOAuth2AuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(mockAuthorizedClient);
 
         Optional<String> providerToken = service.getProviderTokenForUser(mockAuthorization);
@@ -247,7 +247,7 @@ class ProviderTokenServiceTest {
         mockAuthorizedClientEntity = AuthorizedClientUtils
                 .convertOAuth2AuthorizedClientToAuthorizedClient(mockAuthorizedClient, new MockAuthentication(MOCK_PRINCIPAL_NAME));
 
-        when(mockAuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockOAuth2AuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(mockAuthorizedClient);
 
         var thrownException = assertThrows(ResponseStatusException.class, () -> {
@@ -286,9 +286,9 @@ class ProviderTokenServiceTest {
         refreshResponse.setAccessToken(MOCK_REFRESHED_ACCESS_TOKEN);
         refreshResponse.setExpiresIn(3600);
 
-        when(mockAuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockOAuth2AuthorizedClientService.loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(mockAuthorizedClient);
-        when(mockAuthorizedClientRepository.findByClientRegistrationIdAndPrincipalUserId(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
+        when(mockAuthorizedClientService.getMostRecentExclusive(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME))
                 .thenReturn(Optional.of(mockAuthorizedClientEntity));
         when(mockClientRegistrationRepository.findByRegistrationId(MOCK_CLIENT_IDP_ID))
                 .thenReturn(mockClientRegistration);
@@ -301,10 +301,10 @@ class ProviderTokenServiceTest {
 
         assertThat(throwException.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
         assertThat(throwException.getMessage()).isEqualTo(String.format("500 INTERNAL_SERVER_ERROR \"Got error while trying to refresh spotify token: %s\"", HttpStatus.BAD_REQUEST));
-        verify(mockAuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
-        verify(mockAuthorizedClientRepository).findByClientRegistrationIdAndPrincipalUserId(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockOAuth2AuthorizedClientService).loadAuthorizedClient(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
+        verify(mockAuthorizedClientService).getMostRecentExclusive(MOCK_CLIENT_IDP_ID, MOCK_PRINCIPAL_NAME);
         verify(mockClientRegistrationRepository).findByRegistrationId(MOCK_CLIENT_IDP_ID);
-        verify(mockAuthorizedClientRepository, times(0)).save(any(AuthorizedClient.class));
+        verify(mockAuthorizedClientService, times(0)).saveExclusive(any(AuthorizedClient.class));
         verify(mockRestTemplate).postForEntity(
                 MOCK_TOKEN_URI,
                 Map.of(

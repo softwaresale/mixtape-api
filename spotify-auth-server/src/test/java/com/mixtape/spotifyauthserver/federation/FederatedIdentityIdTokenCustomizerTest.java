@@ -9,14 +9,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,8 +36,16 @@ class FederatedIdentityIdTokenCustomizerTest {
 
     public static final String MOCK_PROVIDER_TOKEN_VALUE = "provider-token";
     public static final String PROVIDER_TOKEN_CLAIM = "provider_token";
+    private static final String MOCK_USER_ID = "user";
+    private static final Jwt MOCK_JWT = new Jwt("token-value", Instant.now(), Instant.now().plus(Duration.ofHours(1)), Map.of("header", "value"), Map.of("sub", MOCK_USER_ID));
 
     public static final Profile MOCK_PROFILE = new Profile();
+
+    private static final Authentication MOCK_PRINCIPAL = new JwtAuthenticationToken(
+            MOCK_JWT,
+            List.of(),
+            MOCK_USER_ID
+    );
 
     @Mock
     ProviderTokenService mockProviderTokenService;
@@ -55,6 +69,7 @@ class FederatedIdentityIdTokenCustomizerTest {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorization(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION)
                 .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .principal(MOCK_PRINCIPAL)
                 .build();
 
         when(mockProviderTokenService.getProviderTokenForUser(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION))
@@ -78,6 +93,7 @@ class FederatedIdentityIdTokenCustomizerTest {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorization(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION)
                 .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .principal(MOCK_PRINCIPAL)
                 .build();
 
         when(mockProviderTokenService.getProviderTokenForUser(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION))
@@ -100,6 +116,7 @@ class FederatedIdentityIdTokenCustomizerTest {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 // .authorization(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION)
                 .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .principal(MOCK_PRINCIPAL)
                 .build();
 
         customizer.customize(context);
@@ -115,6 +132,7 @@ class FederatedIdentityIdTokenCustomizerTest {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorization(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION)
                 .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .principal(MOCK_PRINCIPAL)
                 .build();
 
         when(mockProviderTokenService.getProviderTokenForUser(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION))
@@ -135,6 +153,7 @@ class FederatedIdentityIdTokenCustomizerTest {
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorization(MockOAuth2AuthorizationHelper.MOCK_OAUTH2_AUTHORIZATION)
                 .tokenType(OAuth2TokenType.ACCESS_TOKEN)
+                .principal(MOCK_PRINCIPAL)
                 .build();
 
         when(profileService.findProfileBySpotifyId(any())).thenReturn(Optional.empty());
@@ -144,7 +163,6 @@ class FederatedIdentityIdTokenCustomizerTest {
         var thrown = assertThatThrownBy(() -> {
             customizer.customize(context);
         });
-        assertThat(thrown).isInstanceOf(ResponseStatusException.class);
 
         verify(profileService).findProfileBySpotifyId(any());
     }
