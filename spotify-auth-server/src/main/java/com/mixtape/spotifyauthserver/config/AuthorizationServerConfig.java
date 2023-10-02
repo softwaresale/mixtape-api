@@ -1,5 +1,6 @@
 package com.mixtape.spotifyauthserver.config;
 
+import com.mixtape.mixtapeapi.profile.ProfileService;
 import com.mixtape.spotifyauthserver.data.authclient.JpaOAuth2AuthorizedClientRepository;
 import com.mixtape.spotifyauthserver.data.authclient.ProviderTokenService;
 import com.mixtape.spotifyauthserver.data.authorization.AuthorizationRepository;
@@ -166,8 +167,8 @@ public class AuthorizationServerConfig {
      * @return token customizer
      */
     @Bean
-    public OAuth2TokenCustomizer<JwtEncodingContext> idTokenCustomizer(ProviderTokenService providerTokenService) {
-        return new FederatedIdentityIdTokenCustomizer(providerTokenService);
+    public OAuth2TokenCustomizer<JwtEncodingContext> idTokenCustomizer(ProviderTokenService providerTokenService, ProfileService profileService) {
+        return new FederatedIdentityIdTokenCustomizer(providerTokenService, profileService);
     }
 
     @Bean

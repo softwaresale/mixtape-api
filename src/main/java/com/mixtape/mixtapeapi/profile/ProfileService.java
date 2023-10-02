@@ -26,12 +26,19 @@ public class ProfileService {
         return repository.findById(id);
     }
 
+    public Optional<Profile> findProfileBySpotifyId(String id) { return repository.findBySpotifyUID(id); }
+
     public Profile save(Profile newProfile) {
         return repository.save(newProfile);
     }
 
     public Profile createProfileIfNotExists(OAuth2User oauth2User) {
         logger.info("Creating profile for first time user {}", oauth2User);
+        Optional<Profile> existingProfile = findProfileBySpotifyId(oauth2User.getName());
+        if (existingProfile.isPresent()) {
+            logger.info("Profile {} already exists for spotify user {}", existingProfile.get().getId(), oauth2User.getName());
+            return existingProfile.get();
+        }
         String spotifyId = oauth2User.getName();
         String displayName = oauth2User.getAttribute("display_name");
         ArrayList<Map<String, Object>> imagesObjs = oauth2User.getAttribute("images");

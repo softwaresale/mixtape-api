@@ -30,12 +30,11 @@ public class ProfileController {
     }
 
     @GetMapping("/me")
-    public String getByCurrentUser(Principal currentPrincipal) {
+    public Profile getByCurrentUser(Principal currentPrincipal) {
         var userAuthentication = (JwtAuthenticationToken) currentPrincipal;
         String id = userAuthentication.getName();
-        Jwt userJwt = userAuthentication.getToken();
-        String providerToken = userJwt.getClaim("provider_token");
-        return providerToken;
+        return profileService.findProfile(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile could not be found"));
     }
 
     @GetMapping("/{id}")

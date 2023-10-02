@@ -12,5 +12,6 @@ import java.util.Optional;
 @NonNullApi
 public interface ProfileRepository extends JpaRepository<Profile, String> {
     Optional<Profile> findById(@NonNull String id);
+    Optional<Profile> findBySpotifyUID(@NonNull String spotifyUID);
     List<Profile> getAllByDisplayName(@NonNull String displayName);
 }

@@ -3,9 +3,12 @@ package com.mixtape.spotifyauthserver.federation;
 // tag::imports[]
 import java.util.*;
 
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.ProfileService;
 import com.mixtape.spotifyauthserver.data.authclient.ProviderTokenService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
@@ -16,6 +19,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.server.authorization.OAuth2Authorization;
 import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
+import org.springframework.web.server.ResponseStatusException;
 // end::imports[]
 
 /**
@@ -49,9 +53,11 @@ public final class FederatedIdentityIdTokenCustomizer implements OAuth2TokenCust
     )));
 
     private final ProviderTokenService providerTokenService;
+    private final ProfileService profileService;
 
-    public FederatedIdentityIdTokenCustomizer(ProviderTokenService providerTokenService) {
+    public FederatedIdentityIdTokenCustomizer(ProviderTokenService providerTokenService, ProfileService profileService) {
         this.providerTokenService = providerTokenService;
+        this.profileService = profileService;
     }
 
     @Override
@@ -74,6 +80,7 @@ public final class FederatedIdentityIdTokenCustomizer implements OAuth2TokenCust
             logger.debug("Customizing OAuth2 Access token");
             extractProviderTokenValue(context.getAuthorization())
                     .ifPresent(providerTokenValue -> context.getClaims().claim("provider_token", providerTokenValue));
+            swapSubForProfileId(context);
         }
     }
 
@@ -101,6 +108,21 @@ public final class FederatedIdentityIdTokenCustomizer implements OAuth2TokenCust
 
         // Try fetching a provider token for the current user
         return providerTokenService.getProviderTokenForUser(authorization);
+    }
+
+    private void swapSubForProfileId(JwtEncodingContext context) {
+        // Get the sub claim
+        String spotifyId = context.getPrincipal().getName();
+        String profileId = getProfileIdForSpotifyId(spotifyId);
+        context.getClaims()
+                .subject(profileId)
+                .claim("provider_id", spotifyId);
+    }
+
+    private String getProfileIdForSpotifyId(String spotifyId) throws ResponseStatusException {
+        Profile existingProfile = this.profileService.findProfileBySpotifyId(spotifyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "While setting sub to local profile, no profile found with given spotify id"));
+        return existingProfile.getId();
     }
 }
 // end::class[]
