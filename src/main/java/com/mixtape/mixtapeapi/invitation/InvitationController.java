@@ -3,12 +3,10 @@ package com.mixtape.mixtapeapi.invitation;
 import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/invitation")
@@ -26,19 +24,25 @@ public class InvitationController {
     }
 
     @PostMapping
-    public Invitation createNew(Invitation newInvitation) {
-        return invitationService.save(newInvitation);
+    public Invitation createNew(@RequestBody InvitationDTOs.Create newInvitation) {
+        return invitationService.createNewInvitation(newInvitation);
+    }
+
+    @DeleteMapping("/{id}")
+    public Invitation deleteById(@PathVariable String id) {
+        return invitationService.deleteInvitation(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/{id}/playlist")
     public Playlist createNewPlaylist(@PathVariable String id) {
         return invitationService.createPlaylistFromInvitationId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping("/{id}/friendship")
     public Friendship createNewFriendship(@PathVariable String id) {
         return invitationService.createFriendshipFromInvitationId(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }

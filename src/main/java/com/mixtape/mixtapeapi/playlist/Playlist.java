@@ -1,9 +1,10 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.mixtape.Mixtape;
+import com.mixtape.mixtapeapi.profile.Profile;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Playlist {
@@ -13,21 +14,29 @@ public class Playlist {
     private String id;
     private String spotifyID;
     private String name;
-    private String initiatorID;
-    private String targetID;
+
+    @ManyToOne
+    @JoinColumn(name="initiator_id")
+    private Profile initiator;
+
+    @ManyToOne
+    @JoinColumn(name="target_id")
+    private Profile target;
     private String description;
     private String coverPicURL;
 
-    public Playlist() {
+    @OneToMany
+    private List<Mixtape> mixtapes;
 
+    public Playlist() {
     }
 
-    public Playlist(String id, String spotifyID, String name, String initiatorID, String targetID, String description, String coverPicURL) {
+    public Playlist(String id, String spotifyID, String name, Profile initiator, Profile target, String description, String coverPicURL) {
         this.id = id;
         this.spotifyID = spotifyID;
         this.name = name;
-        this.initiatorID = initiatorID;
-        this.targetID = targetID;
+        this.initiator = initiator;
+        this.target = target;
         this.description = description;
         this.coverPicURL = coverPicURL;
     }
@@ -56,20 +65,20 @@ public class Playlist {
         this.name = name;
     }
 
-    public String getInitiatorID() {
-        return initiatorID;
+    public Profile getInitiator() {
+        return initiator;
     }
 
-    public void setInitiatorID(String initiatorID) {
-        this.initiatorID = initiatorID;
+    public void setInitiator(Profile initiator) {
+        this.initiator = initiator;
     }
 
-    public String getTargetID() {
-        return targetID;
+    public Profile getTarget() {
+        return target;
     }
 
-    public void setTargetID(String targetID) {
-        this.targetID = targetID;
+    public void setTarget(Profile target) {
+        this.target = target;
     }
 
     public String getDescription() {
@@ -86,6 +95,20 @@ public class Playlist {
 
     public void setCoverPicURL(String coverPicURL) {
         this.coverPicURL = coverPicURL;
+    }
+
+    public List<Mixtape> getMixtapes() {
+        return mixtapes;
+    }
+
+    public void setMixtapes(List<Mixtape> mixtapes) {
+        mixtapes.forEach(mixtape -> mixtape.setParentPlaylistId(this.id));
+        this.mixtapes = mixtapes;
+    }
+
+    public void addMixtape(Mixtape mixtape) {
+        mixtape.setParentPlaylistId(this.id);
+        this.mixtapes.add(mixtape);
     }
 }
 

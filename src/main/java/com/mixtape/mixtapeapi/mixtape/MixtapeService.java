@@ -1,41 +1,49 @@
 package com.mixtape.mixtapeapi.mixtape;
 
-import jakarta.persistence.EntityNotFoundException;
+import com.mixtape.mixtapeapi.playlist.Playlist;
+import com.mixtape.mixtapeapi.playlist.PlaylistService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class MixtapeService {
-    private final MixtapeRepository mixtapeRepository;
 
-    public MixtapeService(MixtapeRepository mixtapeRepository) {
-        this.mixtapeRepository = mixtapeRepository;
+    private final MixtapeRepository repository;
+    private final PlaylistService playlistService;
+
+    public MixtapeService(MixtapeRepository repository, PlaylistService playlistService) {
+        this.repository = repository;
+        this.playlistService = playlistService;
     }
 
-    public Optional<Mixtape> findMixtape(String id) throws EntityNotFoundException {
-        return mixtapeRepository.findById(id);
+    public Optional<Mixtape> getById(String id) {
+        return repository.findById(id);
     }
 
-    public Mixtape save(Mixtape newMixtape) {
-        return mixtapeRepository.save(newMixtape);
+    public Mixtape createMixtapeForPlaylist(String playlistId, Mixtape newMixtape) {
+        // find the playlist
+        Playlist parentPlaylist = playlistService.findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
+
+        parentPlaylist.addMixtape(newMixtape);
+        Mixtape savedMixtape = repository.save(newMixtape);
+        playlistService.save(parentPlaylist);
+        return savedMixtape;
     }
 
-    public Optional<Mixtape> updateMixtape(Mixtape mixtape, String id) {
-        // Create Optional
-        Optional<Mixtape> optionalMixtape = Optional.empty();
+    public Mixtape addSongToMixtape(String mixtapeId, String songId) throws ResponseStatusException {
+        Mixtape existingMixtape = getById(mixtapeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        existingMixtape.addSongID(songId);
 
-        // If exists, add to optional
-        if (mixtapeRepository.existsById(id)) {
-            optionalMixtape = Optional.of(mixtapeRepository.save(mixtape));
-        }
-
-        // Return final optional
-        return optionalMixtape;
+        return repository.save(existingMixtape);
     }
 
-    public List<Mixtape> findAllMixtapesByPlaylistId(String playlistId) {
-        return mixtapeRepository.findAllByPlaylistID(playlistId);
+    public List<Mixtape> getAllForPlaylist(String playlistId) {
+        return repository.findAllByParentPlaylistId(playlistId);
     }
 }

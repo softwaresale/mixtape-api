@@ -1,9 +1,7 @@
 package com.mixtape.mixtapeapi.friendship;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.profile.Profile;
+import jakarta.persistence.*;
 
 @Entity
 public class Friendship {
@@ -11,17 +9,22 @@ public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private String initiatorID;
-    private String targetID;
+
+    @ManyToOne
+    @JoinColumn(name="initiator_id")
+    private Profile initiator;
+
+    @ManyToOne
+    @JoinColumn(name="target_id")
+    private Profile target;
 
     public Friendship() {
-
     }
 
-    public Friendship(String id, String initiatorID, String targetID) {
+    public Friendship(String id, Profile initiator, Profile target) {
         this.id = id;
-        this.initiatorID = initiatorID;
-        this.targetID = targetID;
+        this.initiator = initiator;
+        this.target = target;
     }
 
     public String getId() {
@@ -32,19 +35,19 @@ public class Friendship {
         this.id = id;
     }
 
-    public String getInitiatorID() {
-        return initiatorID;
+    public Profile getInitiator() {
+        return initiator;
     }
 
-    public void setInitiatorID(String initiatorID) {
-        this.initiatorID = initiatorID;
+    public void setInitiator(Profile initiator) {
+        this.initiator = initiator;
     }
 
-    public String getTargetID() {
-        return targetID;
+    public Profile getTarget() {
+        return target;
     }
 
-    public void setTargetID(String targetID) {
-        this.targetID = targetID;
+    public void setTarget(Profile target) {
+        this.target = target;
     }
 }

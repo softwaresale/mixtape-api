@@ -23,7 +23,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
     @Mock
     Authentication mockAuthentication;
     @Mock
-    JpaAuthorizedClientRepository mockClientRepository;
+    JpaAuthorizedClientService mockClientService;
     @Mock
     ClientRegistrationRepository mockClientRegistrationRepository;
 
@@ -31,7 +31,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        repository = new JpaOAuth2AuthorizedClientRepository(mockClientRepository, mockClientRegistrationRepository);
+        repository = new JpaOAuth2AuthorizedClientRepository(mockClientService, mockClientRegistrationRepository);
     }
 
     @Test
@@ -51,7 +51,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
                 .tokenUri("token://uri")
                 .build();
         when(mockAuthentication.getName()).thenReturn(principalName);
-        when(mockClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.of(mockClient));
         when(mockClientRegistrationRepository.findByRegistrationId(clientRegistrationId))
                 .thenReturn(mockClientRegistration);
@@ -62,7 +62,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
         assertThat(client.getPrincipalName()).isEqualTo(principalName);
         assertThat(client.getAccessToken().getTokenValue()).isEqualTo(providerTokenValue);
         assertThat(client.getClientRegistration().getClientId()).isEqualTo(clientRegistrationId);
-        verify(mockClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository).findByRegistrationId(clientRegistrationId);
     }
 
@@ -71,13 +71,13 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
         String clientRegistrationId = "client-reg";
         String principalName = "prince";
         when(mockAuthentication.getName()).thenReturn(principalName);
-        when(mockClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.empty());
 
         OAuth2AuthorizedClient client = repository.loadAuthorizedClient(clientRegistrationId, mockAuthentication, null);
 
         assertThat(client).isNull();
-        verify(mockClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository, times(0)).findByRegistrationId(clientRegistrationId);
     }
 
@@ -89,7 +89,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
         AuthorizedClient mockClient = new AuthorizedClient();
         mockClient.setProviderToken(providerTokenValue);
         when(mockAuthentication.getName()).thenReturn(principalName);
-        when(mockClientRepository.findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName))
+        when(mockClientService.getMostRecentExclusive(clientRegistrationId, principalName))
                 .thenReturn(Optional.of(mockClient));
         when(mockClientRegistrationRepository.findByRegistrationId(clientRegistrationId))
                 .thenReturn(null);
@@ -97,7 +97,7 @@ class JpaOAuth2AuthorizedClientRepositoryTest {
         OAuth2AuthorizedClient client = repository.loadAuthorizedClient(clientRegistrationId, mockAuthentication, null);
 
         assertThat(client).isNull();
-        verify(mockClientRepository).findByClientRegistrationIdAndPrincipalUserId(clientRegistrationId, principalName);
+        verify(mockClientService).getMostRecentExclusive(clientRegistrationId, principalName);
         verify(mockClientRegistrationRepository).findByRegistrationId(clientRegistrationId);
     }
 }

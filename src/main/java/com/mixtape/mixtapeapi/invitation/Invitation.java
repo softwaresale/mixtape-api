@@ -1,9 +1,7 @@
 package com.mixtape.mixtapeapi.invitation;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.profile.Profile;
+import jakarta.persistence.*;
 
 @Entity
 public class Invitation {
@@ -11,17 +9,23 @@ public class Invitation {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
-    private String initiatorID;
-    private String targetID;
-    private String invitationType;
+
+    @ManyToOne
+    @JoinColumn(name="initiator_id")
+    private Profile initiator;
+
+    @ManyToOne
+    @JoinColumn(name="target_id")
+    private Profile target;
+    private InvitationType invitationType;
 
     public Invitation() {
     }
 
-    public Invitation(String id, String initiatorID, String targetID, String invitationType) {
+    public Invitation(String id, Profile initiator, Profile target, InvitationType invitationType) {
         this.id = id;
-        this.initiatorID = initiatorID;
-        this.targetID = targetID;
+        this.initiator = initiator;
+        this.target = target;
         this.invitationType = invitationType;
     }
 
@@ -33,27 +37,27 @@ public class Invitation {
         this.id = id;
     }
 
-    public String getInitiatorID() {
-        return initiatorID;
+    public Profile getInitiator() {
+        return initiator;
     }
 
-    public void setInitiatorID(String initiatorID) {
-        this.initiatorID = initiatorID;
+    public void setInitiator(Profile initiator) {
+        this.initiator = initiator;
     }
 
-    public String getTargetID() {
-        return targetID;
+    public Profile getTarget() {
+        return target;
     }
 
-    public void setTargetID(String targetID) {
-        this.targetID = targetID;
+    public void setTarget(Profile target) {
+        this.target = target;
     }
 
-    public String getInvitationType() {
+    public InvitationType getInvitationType() {
         return invitationType;
     }
 
-    public void setInvitationType(String invitationType) {
+    public void setInvitationType(InvitationType invitationType) {
         this.invitationType = invitationType;
     }
 }

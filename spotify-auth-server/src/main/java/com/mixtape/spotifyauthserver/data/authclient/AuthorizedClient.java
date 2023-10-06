@@ -52,6 +52,10 @@ public class AuthorizedClient {
         this.scopes = scopes;
     }
 
+    public AuthorizedClient(AuthorizedClient other) {
+        this(other.id, other.providerToken, other.clientRegistrationId, other.principalUserId, other.issuedAt, other.expiresAt, other.scopes);
+    }
+
     public Instant getIssuedAt() {
         return issuedAt;
     }

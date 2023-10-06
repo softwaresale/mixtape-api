@@ -1,10 +1,6 @@
 package com.mixtape.mixtapeapi.mixtape;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,19 +16,21 @@ public class Mixtape {
     private LocalDateTime createdAt;
     private String description;
     private String creatorID;
+    private String parentPlaylistId;
     @ElementCollection
     private List<String> songIDs;
 
     public Mixtape() {
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, String creatorID, List<String> songIDs) {
+    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, String creatorID, String parentPlaylistId, List<String> songIDs) {
         this.id = id;
         this.playlistID = playlistID;
         this.name = name;
         this.createdAt = createdAt;
         this.description = description;
         this.creatorID = creatorID;
+        this.parentPlaylistId = parentPlaylistId;
         this.songIDs = songIDs;
     }
 
@@ -90,5 +88,17 @@ public class Mixtape {
 
     public void setSongIDs(List<String> songIDs) {
         this.songIDs = songIDs;
+    }
+
+    public void addSongID(String songID) {
+        this.songIDs.add(songID);
+    }
+
+    public String getParentPlaylistId() {
+        return parentPlaylistId;
+    }
+
+    public void setParentPlaylistId(String parentPlaylistId) {
+        this.parentPlaylistId = parentPlaylistId;
     }
 }
