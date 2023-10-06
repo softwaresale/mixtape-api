@@ -16,21 +16,19 @@ public class Mixtape {
     private LocalDateTime createdAt;
     private String description;
     private String creatorID;
-    private String parentPlaylistId;
     @ElementCollection
     private List<String> songIDs;
 
     public Mixtape() {
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, String creatorID, String parentPlaylistId, List<String> songIDs) {
+    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, String creatorID, List<String> songIDs) {
         this.id = id;
         this.playlistID = playlistID;
         this.name = name;
         this.createdAt = createdAt;
         this.description = description;
         this.creatorID = creatorID;
-        this.parentPlaylistId = parentPlaylistId;
         this.songIDs = songIDs;
     }
 
@@ -92,13 +90,5 @@ public class Mixtape {
 
     public void addSongID(String songID) {
         this.songIDs.add(songID);
-    }
-
-    public String getParentPlaylistId() {
-        return parentPlaylistId;
-    }
-
-    public void setParentPlaylistId(String parentPlaylistId) {
-        this.parentPlaylistId = parentPlaylistId;
     }
 }

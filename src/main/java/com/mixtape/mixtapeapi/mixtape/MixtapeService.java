@@ -24,10 +24,41 @@ public class MixtapeService {
         return repository.findById(id);
     }
 
+    public Optional<Mixtape> getByIds(String playlistId, String mixtapeId) {
+        // Grab mixtape optional
+        Optional<Mixtape> optionalMixtape = getById(mixtapeId);
+
+        // Check if present
+        if (optionalMixtape.isEmpty()) return optionalMixtape;
+
+        // Check if playlist id is right
+        if (!optionalMixtape.get().getPlaylistID().equals(playlistId)) {
+            return Optional.empty();
+        }
+
+        // Success
+        return optionalMixtape;
+    }
+
+    public Optional<Mixtape> updateByIds(String playlistId, String mixtapeId, Mixtape newMixtape) {
+        // Grab mixtape optional
+        Optional<Mixtape> optionalMixtape = getByIds(playlistId, mixtapeId);
+
+        // Check if present
+        if (optionalMixtape.isEmpty()) return optionalMixtape;
+
+        // Check playlist id
+        if (!optionalMixtape.get().getPlaylistID().equals(newMixtape.getPlaylistID())) {
+            return Optional.empty();
+        }
+
+        // Else update
+        return Optional.of(repository.save(newMixtape));
+    }
+
     public Mixtape createMixtapeForPlaylist(String playlistId, Mixtape newMixtape) {
         // find the playlist
-        Playlist parentPlaylist = playlistService.findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
+        Playlist parentPlaylist = playlistService.findPlaylist(playlistId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
 
         parentPlaylist.addMixtape(newMixtape);
         Mixtape savedMixtape = repository.save(newMixtape);
@@ -36,8 +67,7 @@ public class MixtapeService {
     }
 
     public Mixtape addSongToMixtape(String mixtapeId, String songId) throws ResponseStatusException {
-        Mixtape existingMixtape = getById(mixtapeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        Mixtape existingMixtape = getById(mixtapeId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         existingMixtape.addSongID(songId);
 
         return repository.save(existingMixtape);
