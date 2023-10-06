@@ -1,8 +1,6 @@
 package com.mixtape.mixtapeapi.playlist;
 
 import com.mixtape.mixtapeapi.invitation.Invitation;
-import com.mixtape.mixtapeapi.invitation.InvitationRepository;
-import com.mixtape.mixtapeapi.invitation.InvitationService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
