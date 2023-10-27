@@ -13,6 +13,7 @@ import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -49,6 +50,22 @@ public class TrackService {
         }
         playlist.setMixtapes(mixtapes);
         return playlist;
+    }
+
+    public Duration getMixtapeDuration(Mixtape mixtape) throws IOException {
+        try {
+            Track[] spotifyTracks = spotifyApi.getSeveralTracks(mixtape.getSongIDs().toArray(String[]::new))
+                    .build()
+                    .execute();
+
+            long totalDurationMs = Arrays.stream(spotifyTracks)
+                    .mapToLong(Track::getDurationMs)
+                    .sum();
+
+            return Duration.ofMillis(totalDurationMs);
+        } catch (ParseException | SpotifyWebApiException spotifyExe) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request");
+        }
     }
 
     private TrackInfo convertSpotifyTrack(Track track) {

@@ -1,12 +1,17 @@
 package com.mixtape.mixtapeapi.mixtape;
 
+import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,57 +27,38 @@ public class MixtapeServiceTest {
     @Mock
     PlaylistService mockPlaylistService;
 
+    @Mock
+    TrackService mockTrackService;
+
     MixtapeService mixtapeService;
 
     @BeforeEach
     void beforeEach() {
-        mixtapeService = new MixtapeService(mockMixtapeRepository, mockPlaylistService);
+        mixtapeService = new MixtapeService(mockMixtapeRepository, mockPlaylistService, mockTrackService);
     }
 
     @Test
-    void getByIds_mixtapeExistsCorrectPlaylist() {
-        String playlistId = "playlistId";
-        String mixtapeId = "mixtapeId";
-        Mixtape mixtape = new Mixtape(null, playlistId, null, null, null, null, null);
-        Optional<Mixtape> optionalMixtape = Optional.of(mixtape);
+    void createMixtapeForPlaylist_shouldAddMixtapeToPlaylist_whenSuccessful() throws IOException {
+        String mockPlaylistId = "playlist-id";
+        Playlist mockPlaylist = new Playlist();
+        mockPlaylist.setId(mockPlaylistId);
+        Profile mockProfile = new Profile();
+        Mixtape mockMixtape = new Mixtape();
 
-        when(mockMixtapeRepository.findById(mixtapeId)).thenReturn(optionalMixtape);
+        when(mockTrackService.getMixtapeDuration(mockMixtape)).thenReturn(Duration.ofMillis(4000));
+        when(mockPlaylistService.findPlaylist(mockPlaylistId)).thenReturn(Optional.of(mockPlaylist));
+        when(mockMixtapeRepository.save(mockMixtape)).thenReturn(mockMixtape);
 
-        Optional<Mixtape> retVal = mixtapeService.getByIds(playlistId, mixtapeId);
-        assertTrue(retVal.isPresent());
-        assertThat(retVal.get()).isEqualTo(mixtape);
+        Mixtape newMixtape = mixtapeService.createMixtapeForPlaylist(mockProfile, mockPlaylistId, mockMixtape);
+        assertThat(newMixtape).isEqualTo(mockMixtape);
+        assertThat(newMixtape.getCreator()).isEqualTo(mockProfile);
+        assertThat(newMixtape.getPlaylistID()).isEqualTo(mockPlaylistId);
+        assertThat(newMixtape.getDurationMS()).isEqualTo(4000);
+        assertThat(mockPlaylist.getMixtapes()).contains(mockMixtape);
 
-        verify(mockMixtapeRepository).findById(mixtapeId);
+        verify(mockPlaylistService).findPlaylist(mockPlaylistId);
+        verify(mockTrackService).getMixtapeDuration(mockMixtape);
+        verify(mockPlaylistService).save(mockPlaylist);
+        verify(mockMixtapeRepository).save(mockMixtape);
     }
-
-    @Test
-    void getByIds_mixtapeExistWrongPlaylist() {
-        String playlistId = "playlistId";
-        String wrongPlaylistId = "wrongPlaylistId";
-        String mixtapeId = "mixtapeId";
-        Mixtape mixtape = new Mixtape(null, playlistId, null, null, null, null, null);
-        Optional<Mixtape> optionalMixtape = Optional.of(mixtape);
-
-        when(mockMixtapeRepository.findById(mixtapeId)).thenReturn(optionalMixtape);
-
-        Optional<Mixtape> retVal = mixtapeService.getByIds(wrongPlaylistId, mixtapeId);
-        assertTrue(retVal.isEmpty());
-
-        verify(mockMixtapeRepository).findById(mixtapeId);
-    }
-
-    @Test
-    void getByIds_mixtapeDoesNotExist() {
-        String playlistId = "playlistId";
-        String mixtapeId = "mixtapeId";
-
-        when(mockMixtapeRepository.findById(mixtapeId)).thenReturn(Optional.empty());
-
-        Optional<Mixtape> retVal = mixtapeService.getByIds(playlistId, mixtapeId);
-        assertTrue(retVal.isEmpty());
-
-        verify(mockMixtapeRepository).findById(mixtapeId);
-    }
-
-
 }

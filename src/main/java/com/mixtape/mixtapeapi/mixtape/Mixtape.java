@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -17,6 +18,7 @@ public class Mixtape {
     private String name;
     private LocalDateTime createdAt;
     private String description;
+    private Long durationMS;
 
     @ManyToOne
     @JoinColumn(name="creator_id")
@@ -29,20 +31,23 @@ public class Mixtape {
     private List<TrackInfo> songs;
 
     public Mixtape() {
+        this("", "", "", LocalDateTime.now(), "", 0L, null, new ArrayList<>());
     }
 
     public Mixtape(MixtapeDTO.Create createDTO) {
-        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, null, createDTO.songIDs);
+        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs);
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Profile creator, List<String> songIDs) {
+    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs) {
         this.id = id;
         this.playlistID = playlistID;
         this.name = name;
         this.createdAt = createdAt;
         this.description = description;
+        this.durationMS = durationMS;
         this.creator = creator;
         this.songIDs = songIDs;
+
     }
 
     public String getId() {
@@ -111,5 +116,13 @@ public class Mixtape {
 
     public void setSongs(List<TrackInfo> songs) {
         this.songs = songs;
+    }
+
+    public Long getDurationMS() {
+        return durationMS;
+    }
+
+    public void setDurationMS(Long durationMS) {
+        this.durationMS = durationMS;
     }
 }

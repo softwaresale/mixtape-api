@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +40,7 @@ public class MixtapeService {
         return Optional.of(mixtape);
     }
 
-    public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) {
+    public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) throws IOException {
         // find the playlist
         Playlist parentPlaylist = playlistService.findPlaylist(playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
@@ -47,6 +48,8 @@ public class MixtapeService {
         parentPlaylist.addMixtape(newMixtape);
         newMixtape.setPlaylistID(parentPlaylist.getId());
         newMixtape.setCreator(creator);
+        Duration mixtapeDuration = trackService.getMixtapeDuration(newMixtape);
+        newMixtape.setDurationMS(mixtapeDuration.toMillis());
         Mixtape savedMixtape = repository.save(newMixtape);
         playlistService.save(parentPlaylist);
         return savedMixtape;

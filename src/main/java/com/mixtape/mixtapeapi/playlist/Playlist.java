@@ -1,10 +1,13 @@
 package com.mixtape.mixtapeapi.playlist;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 public class Playlist {
@@ -29,6 +32,7 @@ public class Playlist {
     private List<Mixtape> mixtapes;
 
     public Playlist() {
+        this("", "", "", null, null, "", "");
     }
 
     public Playlist(String id, String spotifyID, String name, Profile initiator, Profile target, String description, String coverPicURL) {
@@ -39,6 +43,7 @@ public class Playlist {
         this.target = target;
         this.description = description;
         this.coverPicURL = coverPicURL;
+        this.mixtapes = new ArrayList<>();
     }
 
     public String getId() {
@@ -109,6 +114,21 @@ public class Playlist {
     public void addMixtape(Mixtape mixtape) {
         mixtape.setPlaylistID(this.id);
         this.mixtapes.add(mixtape);
+    }
+
+    @JsonProperty
+    public long totalDurationMS() {
+        return mixtapes.stream()
+                .mapToLong(Mixtape::getDurationMS)
+                .sum();
+    }
+
+    @JsonProperty
+    public int songCount() {
+        return mixtapes.stream()
+                .flatMap(mixtape -> mixtape.getSongIDs().stream())
+                .collect(Collectors.toSet())
+                .size();
     }
 }
 

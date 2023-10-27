@@ -7,5 +7,11 @@ public class MixtapeDTO {
         public String name;
         public String description;
         public List<String> songIDs;
+
+        public Create(String name, String description, List<String> songIDs) {
+            this.name = name;
+            this.description = description;
+            this.songIDs = songIDs;
+        }
     }
 }
