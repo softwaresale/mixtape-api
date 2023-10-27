@@ -31,7 +31,7 @@ public class Playlist {
     private String description;
     private String coverPicURL;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.REMOVE)
     private List<Mixtape> mixtapes;
 
     public Playlist() {
