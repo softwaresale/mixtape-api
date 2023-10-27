@@ -1,5 +1,7 @@
 package com.mixtape.mixtapeapi.mixtape;
 
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -15,20 +17,31 @@ public class Mixtape {
     private String name;
     private LocalDateTime createdAt;
     private String description;
-    private String creatorID;
+
+    @ManyToOne
+    @JoinColumn(name="creator_id")
+    private Profile creator;
+
     @ElementCollection
     private List<String> songIDs;
+
+    @Transient
+    private List<TrackInfo> songs;
 
     public Mixtape() {
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, String creatorID, List<String> songIDs) {
+    public Mixtape(MixtapeDTO.Create createDTO) {
+        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, null, createDTO.songIDs);
+    }
+
+    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Profile creator, List<String> songIDs) {
         this.id = id;
         this.playlistID = playlistID;
         this.name = name;
         this.createdAt = createdAt;
         this.description = description;
-        this.creatorID = creatorID;
+        this.creator = creator;
         this.songIDs = songIDs;
     }
 
@@ -72,12 +85,12 @@ public class Mixtape {
         this.description = description;
     }
 
-    public String getCreatorID() {
-        return creatorID;
+    public Profile getCreator() {
+        return creator;
     }
 
-    public void setCreatorID(String creatorID) {
-        this.creatorID = creatorID;
+    public void setCreator(Profile creator) {
+        this.creator = creator;
     }
 
     public List<String> getSongIDs() {
@@ -90,5 +103,13 @@ public class Mixtape {
 
     public void addSongID(String songID) {
         this.songIDs.add(songID);
+    }
+
+    public List<TrackInfo> getSongs() {
+        return songs;
+    }
+
+    public void setSongs(List<TrackInfo> songs) {
+        this.songs = songs;
     }
 }
