@@ -1,20 +1,45 @@
 package com.mixtape.mixtapeapi.playlist;
 
 import com.mixtape.mixtapeapi.invitation.Invitation;
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
+    private final TrackService trackService;
 
-    public PlaylistService(PlaylistRepository playlistRepository) {
+    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService) {
         this.playlistRepository = playlistRepository;
+        this.trackService = trackService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
         return playlistRepository.findById(id);
+    }
+
+    public Optional<Playlist> findPlaylistForProfile(Profile profile, String playlistId) throws IOException {
+        Optional<Playlist> playlistOpt = playlistRepository.findByIdAndInitiatorOrTarget(playlistId, profile, profile);
+        if (playlistOpt.isEmpty()) {
+            return playlistOpt;
+        }
+
+        Playlist inflatedPlaylist = trackService.inflatePlaylist(playlistOpt.get());
+        return Optional.of(inflatedPlaylist);
+    }
+
+    public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
+        List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
+        for (var playlist : playlists) {
+            trackService.inflatePlaylist(playlist);
+        }
+
+        return playlists;
     }
 
     public Playlist save(Playlist playlist) {
