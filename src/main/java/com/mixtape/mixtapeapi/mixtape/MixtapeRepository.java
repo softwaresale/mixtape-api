@@ -9,6 +9,4 @@ import java.util.Optional;
 @Repository
 public interface MixtapeRepository extends JpaRepository<Mixtape, String> {
     Optional<Mixtape> findById(String id);
-
-    List<Mixtape> findAllByParentPlaylistId(String parentPlaylistId);
 }
