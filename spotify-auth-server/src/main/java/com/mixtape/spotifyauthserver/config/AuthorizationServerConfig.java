@@ -55,7 +55,7 @@ import java.util.UUID;
  */
 @Configuration(proxyBeanMethods = false)
 public class AuthorizationServerConfig {
-    private static final String CUSTOM_CONSENT_PAGE_URI = "/oauth2/consent";
+    //private static final String CUSTOM_CONSENT_PAGE_URI = "/oauth2/consent";
 
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -69,10 +69,10 @@ public class AuthorizationServerConfig {
         http.getConfigurer(OAuth2AuthorizationServerConfigurer.class)
                 .registeredClientRepository(registeredClientRepository)
                 .authorizationService(jpaOAuthAuthorizationService)
+                /*
                 .authorizationEndpoint(authorizationEndpoint ->
-                        authorizationEndpoint
-                                .consentPage(CUSTOM_CONSENT_PAGE_URI)
-                )
+
+                )*/
                 .oidc(Customizer.withDefaults());	// Enable OpenID Connect 1.0
 
         http
@@ -152,7 +152,7 @@ public class AuthorizationServerConfig {
      * Provides an oauth2 consent service. See {@link JpaOAuth2AuthorizationConsentService} for more details
      * @param authConsentRepo JPA Repository of authorization consent records
      * @param registeredClientRepository Bean for Registered client repo
-     * @return OAuth2AuthorizedConsentSErvice
+     * @return OAuth2AuthorizedConsentService
      */
     @Bean
     public OAuth2AuthorizationConsentService authorizationConsentService(AuthorizationConsentRepository authConsentRepo,
@@ -188,9 +188,11 @@ public class AuthorizationServerConfig {
      * @return AuthorizationServerSettings bean
      */
     @Bean
-    public AuthorizationServerSettings authorizationServerSettings() {
-        return AuthorizationServerSettings.builder()
-                .issuer("http://auth-server:9001")
-                .build();
+    public AuthorizationServerSettings authorizationServerSettings(MixtapeSecurityConfigurationProperties mixtapeSecurityProperties) {
+        var builder = AuthorizationServerSettings.builder();
+        if (!mixtapeSecurityProperties.getIssuerUri().isBlank()) {
+            builder.issuer(mixtapeSecurityProperties.getIssuerUri());
+        }
+        return builder.build();
     }
 }

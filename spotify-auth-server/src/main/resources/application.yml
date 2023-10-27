@@ -1,9 +1,10 @@
 
 server:
-  port: ${SERVER_PORT}
-  forward-headers-strategy: native
+  port: 9000
 
 spring:
+  profiles:
+    active: ${MIXTAPE_PROFILE:default}
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/mixtape
     username: username
@@ -40,7 +41,11 @@ logging:
     org:
       hibernate: info
 
+mixtape:
+  security:
+    issuer-uri: http://auth.mixtape.local:9000
+
+
+
 SERVER_PORT: 9000
-SERVER_ADDR: 127.0.0.1
-EXTERNAL_PORT: ${SERVER_PORT}
 DB_HOST: localhost
