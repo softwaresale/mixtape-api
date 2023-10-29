@@ -11,8 +11,10 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MixtapeService {
@@ -59,5 +61,66 @@ public class MixtapeService {
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
         return playlist.getMixtapes();
+    }
+
+    public List<Mixtape> getAllForPlaylistByTitle(Profile profile, String playlistId, String title) throws IOException {
+        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+
+        // Returns mixtapes that have same title as given title
+        return playlist
+                .getMixtapes()
+                .stream()
+                .filter(mixtape -> mixtape.getName().equals(title))
+                .collect(Collectors.toList());
+    }
+
+    public List<Mixtape> getAllForPlaylistBySongName(Profile profile, String playlistId, String songName) throws IOException {
+        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+
+        // Returns mixtapes that have any songs with same name as songName
+        return playlist
+                .getMixtapes()
+                .stream()
+                .filter(mixtape -> mixtape
+                                .getSongs()
+                                .stream()
+                                .map(TrackInfo::getName)
+                                .anyMatch(songName::equals))
+                .collect(Collectors.toList());
+    }
+
+    public List<Mixtape> getAllForPlaylistByArtistName(Profile profile, String playlistId, String artistName) throws IOException {
+        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+
+        // Returns mixtapes that have any artists with same name as artistName
+        return playlist
+                .getMixtapes()
+                .stream()
+                .filter(mixtape -> mixtape
+                        .getSongs()
+                        .stream()
+                        .map(TrackInfo::getArtistNames)
+                        .flatMap(Collection::stream)
+                        .anyMatch(artistName::equals))
+                .collect(Collectors.toList());
+    }
+
+    public List<Mixtape> getAllForPlaylistByAlbumName(Profile profile, String playlistId, String albumName) throws IOException {
+        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+
+        // Returns mixtapes that have any albums with same name as albumName
+        return playlist
+                .getMixtapes()
+                .stream()
+                .filter(mixtape -> mixtape
+                        .getSongs()
+                        .stream()
+                        .map(TrackInfo::getAlbumName)
+                        .anyMatch(albumName::equals))
+                .collect(Collectors.toList());
     }
 }

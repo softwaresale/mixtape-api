@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -27,9 +28,29 @@ public class MixtapeController extends AbstractRestController {
     }
 
     @GetMapping
-    public List<Mixtape> getAllForPlaylist(@PathVariable String profileId, @PathVariable String playlistId) throws IOException {
+    public List<Mixtape> getAllForPlaylist(@PathVariable String profileId,
+                                           @PathVariable String playlistId,
+                                           @RequestParam (required = false) String title,
+                                           @RequestParam (required = false) String songName,
+                                           @RequestParam (required = false) String artistName,
+                                           @RequestParam (required = false) String albumName) throws IOException {
         Profile profile = resolveProfileOr404(profileId);
-        return mixtapeService.getAllForPlaylist(profile, playlistId);
+
+        // Check for query params
+        if (title != null && songName == null && artistName == null && albumName == null) { // Title param
+            return mixtapeService.getAllForPlaylistByTitle(profile, playlistId, title);
+        } else if (title == null && songName != null && artistName == null && albumName == null) { // Song name param
+            return mixtapeService.getAllForPlaylistBySongName(profile, playlistId, songName);
+        } else if (title == null && songName == null && artistName != null && albumName == null) { // Artist name param
+            return mixtapeService.getAllForPlaylistByArtistName(profile, playlistId, artistName);
+        } else if (title == null && songName == null && artistName == null && albumName != null) { // Album name param
+            return mixtapeService.getAllForPlaylistByAlbumName(profile, playlistId, albumName);
+        } else if (title == null && songName == null && artistName == null && albumName == null) { // No Param
+            return mixtapeService.getAllForPlaylist(profile, playlistId);
+        } else { // Bad request
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Only one or no param (title, song name, artist name, or album name) can be specified at a time");
+        }
     }
 
     @PostMapping
