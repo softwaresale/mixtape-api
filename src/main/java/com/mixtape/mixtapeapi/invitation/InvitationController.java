@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/profile/{profileId}/invitation")
 public class InvitationController extends AbstractRestController {
@@ -18,6 +20,18 @@ public class InvitationController extends AbstractRestController {
         super(profileService);
         this.invitationService = invitationService;
         this.playlistService = playlistService;
+    }
+
+    @GetMapping("/incoming")
+    public List<Invitation> getIncomingInvitations(@PathVariable String profileId) {
+        Profile profile = resolveProfileOr404(profileId);
+        return invitationService.getIncomingInvitations(profile);
+    }
+
+    @GetMapping("/outgoing")
+    public List<Invitation> getOutgoingInvitations(@PathVariable String profileId) {
+        Profile profile = resolveProfileOr404(profileId);
+        return invitationService.getOutgoingInvitations(profile);
     }
 
     @GetMapping("/{id}")

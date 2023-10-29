@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,6 +23,14 @@ public class InvitationService {
         this.invitationRepository = invitationRepository;
         this.friendshipService = friendshipService;
         this.profileService = profileService;
+    }
+
+    public List<Invitation> getIncomingInvitations(Profile profile) {
+        return invitationRepository.findAllByTarget(profile);
+    }
+
+    public List<Invitation> getOutgoingInvitations(Profile profile) {
+        return invitationRepository.findAllByInitiator(profile);
     }
 
     public Optional<Invitation> findInvitation(String id) {
