@@ -19,14 +19,18 @@ public class Invitation {
     private Profile target;
     private InvitationType invitationType;
 
+    private String invitedObjectID;
+
     public Invitation() {
+        this("", null, null, InvitationType.PLAYLIST, "");
     }
 
-    public Invitation(String id, Profile initiator, Profile target, InvitationType invitationType) {
+    public Invitation(String id, Profile initiator, Profile target, InvitationType invitationType, String invitedObjectID) {
         this.id = id;
         this.initiator = initiator;
         this.target = target;
         this.invitationType = invitationType;
+        this.invitedObjectID = invitedObjectID;
     }
 
     public String getId() {
@@ -59,5 +63,13 @@ public class Invitation {
 
     public void setInvitationType(InvitationType invitationType) {
         this.invitationType = invitationType;
+    }
+
+    public String getInvitedObjectID() {
+        return invitedObjectID;
+    }
+
+    public void setInvitedObjectID(String invitedObjectID) {
+        this.invitedObjectID = invitedObjectID;
     }
 }
