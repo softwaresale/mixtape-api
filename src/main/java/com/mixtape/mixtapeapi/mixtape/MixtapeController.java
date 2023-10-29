@@ -4,6 +4,7 @@ import com.mixtape.mixtapeapi.AbstractRestController;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,10 +31,10 @@ public class MixtapeController extends AbstractRestController {
     @GetMapping
     public List<Mixtape> getAllForPlaylist(@PathVariable String profileId,
                                            @PathVariable String playlistId,
-                                           @RequestParam (required = false) String title,
-                                           @RequestParam (required = false) String songName,
-                                           @RequestParam (required = false) String artistName,
-                                           @RequestParam (required = false) String albumName) throws IOException {
+                                           @RequestParam(required = false) String title,
+                                           @RequestParam(required = false) String songName,
+                                           @RequestParam(required = false) String artistName,
+                                           @RequestParam(required = false) String albumName) throws IOException {
         Profile profile = resolveProfileOr404(profileId);
 
         // Check for query params
@@ -68,5 +69,10 @@ public class MixtapeController extends AbstractRestController {
         // TODO add some sort of check with the playlist id
         return mixtapeService.getById(mixtapeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
+    @DeleteMapping("/{mixtapeId}")
+    public void deleteMixtape(@PathVariable String profileId, @PathVariable String playlistId, @PathVariable String mixtapeId) throws IOException {
+        mixtapeService.deleteMixtapeFromPlaylist(playlistId, mixtapeId);
     }
 }
