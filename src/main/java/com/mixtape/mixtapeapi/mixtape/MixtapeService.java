@@ -83,11 +83,16 @@ public class MixtapeService {
         return playlist
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> mixtape
-                                .getSongs()
-                                .stream()
-                                .map(TrackInfo::getName)
-                                .anyMatch(songName::equals))
+                .filter(mixtape -> {
+                    try {
+                        return trackService.getTrackInfoForMixtape(mixtape)
+                                        .stream()
+                                        .map(TrackInfo::getName)
+                                        .anyMatch(songName::equals);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -99,12 +104,17 @@ public class MixtapeService {
         return playlist
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> mixtape
-                        .getSongs()
-                        .stream()
-                        .map(TrackInfo::getArtistNames)
-                        .flatMap(Collection::stream)
-                        .anyMatch(artistName::equals))
+                .filter(mixtape -> {
+                    try {
+                        return trackService.getTrackInfoForMixtape(mixtape)
+                                .stream()
+                                .map(TrackInfo::getArtistNames)
+                                .flatMap(Collection::stream)
+                                .anyMatch(artistName::equals);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
@@ -116,11 +126,16 @@ public class MixtapeService {
         return playlist
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> mixtape
-                        .getSongs()
-                        .stream()
-                        .map(TrackInfo::getAlbumName)
-                        .anyMatch(albumName::equals))
+                .filter(mixtape -> {
+                    try {
+                        return trackService.getTrackInfoForMixtape(mixtape)
+                                .stream()
+                                .map(TrackInfo::getAlbumName)
+                                .anyMatch(albumName::equals);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 }
