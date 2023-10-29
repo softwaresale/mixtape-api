@@ -80,19 +80,14 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any songs with same name as songName
-        return playlist
+        return trackService.inflatePlaylist(playlist)
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> {
-                    try {
-                        return trackService.getTrackInfoForMixtape(mixtape)
-                                        .stream()
-                                        .map(TrackInfo::getName)
-                                        .anyMatch(songName::equals);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .filter(mixtape -> mixtape
+                                .getSongs()
+                                .stream()
+                                .map(TrackInfo::getName)
+                                .anyMatch(songName::equals))
                 .collect(Collectors.toList());
     }
 
@@ -101,20 +96,15 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any artists with same name as artistName
-        return playlist
+        return trackService.inflatePlaylist(playlist)
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> {
-                    try {
-                        return trackService.getTrackInfoForMixtape(mixtape)
-                                .stream()
-                                .map(TrackInfo::getArtistNames)
-                                .flatMap(Collection::stream)
-                                .anyMatch(artistName::equals);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .filter(mixtape -> mixtape
+                        .getSongs()
+                        .stream()
+                        .map(TrackInfo::getArtistNames)
+                        .flatMap(Collection::stream)
+                        .anyMatch(artistName::equals))
                 .collect(Collectors.toList());
     }
 
@@ -123,19 +113,14 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any albums with same name as albumName
-        return playlist
+        return trackService.inflatePlaylist(playlist)
                 .getMixtapes()
                 .stream()
-                .filter(mixtape -> {
-                    try {
-                        return trackService.getTrackInfoForMixtape(mixtape)
-                                .stream()
-                                .map(TrackInfo::getAlbumName)
-                                .anyMatch(albumName::equals);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .filter(mixtape -> mixtape
+                        .getSongs()
+                        .stream()
+                        .map(TrackInfo::getAlbumName)
+                        .anyMatch(albumName::equals))
                 .collect(Collectors.toList());
     }
 }
