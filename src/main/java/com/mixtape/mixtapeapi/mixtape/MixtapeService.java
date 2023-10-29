@@ -80,7 +80,7 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any songs with same name as songName
-        return trackService.inflatePlaylist(playlist)
+        return playlist
                 .getMixtapes()
                 .stream()
                 .filter(mixtape -> mixtape
@@ -96,7 +96,7 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any artists with same name as artistName
-        return trackService.inflatePlaylist(playlist)
+        return playlist
                 .getMixtapes()
                 .stream()
                 .filter(mixtape -> mixtape
@@ -113,7 +113,7 @@ public class MixtapeService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have any albums with same name as albumName
-        return trackService.inflatePlaylist(playlist)
+        return playlist
                 .getMixtapes()
                 .stream()
                 .filter(mixtape -> mixtape
