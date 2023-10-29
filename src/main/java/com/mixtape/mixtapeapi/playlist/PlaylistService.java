@@ -82,6 +82,11 @@ public class PlaylistService {
     }
 
     public void deleteById(String playlistId) {
+        // Check if exists
+        findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
+
+        // Delete playlist
         this.playlistRepository.deleteById(playlistId);
     }
 }

@@ -46,4 +46,8 @@ public class PlaylistController extends AbstractRestController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @DeleteMapping("/{playlistId}")
+    public void delete(@PathVariable String profileId, @PathVariable String playlistId) {
+        playlistService.deleteById(playlistId);
+    }
 }
