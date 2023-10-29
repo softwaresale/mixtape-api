@@ -4,12 +4,7 @@ import com.mixtape.mixtapeapi.AbstractRestController;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -29,6 +24,13 @@ public class PlaylistController extends AbstractRestController {
     public List<Playlist> getPlaylistsForProfile(@PathVariable String profileId) throws IOException {
         Profile profile = resolveProfileOr404(profileId);
         return playlistService.findPlaylistsForProfile(profile);
+    }
+
+    @PostMapping
+    public Playlist createPlaylist(@PathVariable String profileId, @RequestBody PlaylistDTO.Create createPlaylist) {
+        Profile target = resolveProfileOr404(createPlaylist.requestedUserID);
+        Profile initiator = resolveProfileOr404(profileId);
+        return playlistService.createPlaylist(initiator, createPlaylist, target);
     }
 
     @GetMapping("/{id}")

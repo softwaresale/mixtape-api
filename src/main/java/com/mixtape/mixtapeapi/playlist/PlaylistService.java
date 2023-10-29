@@ -1,9 +1,11 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import com.mixtape.mixtapeapi.invitation.Invitation;
+import com.mixtape.mixtapeapi.invitation.InvitationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -13,10 +15,12 @@ import java.util.Optional;
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final TrackService trackService;
+    private final InvitationService invitationService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService) {
+    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService) {
         this.playlistRepository = playlistRepository;
         this.trackService = trackService;
+        this.invitationService = invitationService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -33,6 +37,24 @@ public class PlaylistService {
         return Optional.of(inflatedPlaylist);
     }
 
+    public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create createPlaylist, Profile requestedTarget) {
+        // Create the playlist
+        Playlist playlist = new Playlist(null, "", createPlaylist.name, initiator, null, createPlaylist.description, createPlaylist.coverPicURL);
+        playlist = save(playlist);
+
+        // create an additional invitation for the playlist
+        invitationService.createInvitationFromPlaylist(playlist, requestedTarget);
+
+        return playlist;
+    }
+
+    public Playlist acceptPlaylistInvitation(Profile acceptor, String playlistId) {
+        Playlist requestedPlaylist = this.findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        requestedPlaylist.setTarget(acceptor);
+        return save(requestedPlaylist);
+    }
+
     public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
         List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
         for (var playlist : playlists) {
@@ -44,15 +66,6 @@ public class PlaylistService {
 
     public Playlist save(Playlist playlist) {
         return playlistRepository.save(playlist);
-    }
-
-    public Playlist createPlaylistFromInvitation(Invitation invitation) {
-        // Create Playlist
-        String defaultName = String.format("%s and %s's playlist", invitation.getInitiator().getDisplayName(), invitation.getTarget().getDisplayName());
-        Playlist newPlaylist = new Playlist(null, null, defaultName, invitation.getInitiator(), invitation.getTarget(), null, null);
-
-        // Save to repository
-        return playlistRepository.save(newPlaylist);
     }
 
     public Optional<Playlist> updatePlaylist(Playlist playlist, String id) {
@@ -68,4 +81,7 @@ public class PlaylistService {
         return optionalPlaylist;
     }
 
+    public void deleteById(String playlistId) {
+        this.playlistRepository.deleteById(playlistId);
+    }
 }

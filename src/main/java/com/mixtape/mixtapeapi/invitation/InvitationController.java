@@ -1,31 +1,35 @@
 package com.mixtape.mixtapeapi.invitation;
 
-import com.mixtape.mixtapeapi.friendship.Friendship;
-import com.mixtape.mixtapeapi.playlist.Playlist;
+import com.mixtape.mixtapeapi.AbstractRestController;
+import com.mixtape.mixtapeapi.playlist.PlaylistService;
+import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/v1/invitation")
-public class InvitationController {
+@RequestMapping("/api/v1/profile/{profileId}/invitation")
+public class InvitationController extends AbstractRestController {
     private final InvitationService invitationService;
+    private final PlaylistService playlistService;
 
-    public InvitationController(InvitationService invitationService) {
+    public InvitationController(ProfileService profileService, InvitationService invitationService, PlaylistService playlistService) {
+        super(profileService);
         this.invitationService = invitationService;
+        this.playlistService = playlistService;
     }
 
     @GetMapping("/{id}")
-    public Invitation getById(@PathVariable String id) {
+    public Invitation getById(@PathVariable String profileId, @PathVariable String id) {
         return invitationService.findInvitation(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
-    public Invitation createNew(@RequestBody InvitationDTOs.Create newInvitation) {
-        return invitationService.createNewInvitation(newInvitation);
+    public Invitation createNew(@PathVariable String profileId, @RequestBody InvitationDTOs.Create newInvitation) {
+        Profile initiator = resolveProfileOr404(profileId);
+        return invitationService.createNewInvitation(initiator, newInvitation);
     }
 
     @DeleteMapping("/{id}")
@@ -34,15 +38,44 @@ public class InvitationController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @PostMapping("/{id}/playlist")
-    public Playlist createNewPlaylist(@PathVariable String id) {
-        return invitationService.createPlaylistFromInvitationId(id)
+    @PostMapping("/{id}/accept")
+    public Object acceptInvitation(@PathVariable String profileId, @PathVariable String id) {
+        Profile acceptor = resolveProfileOr404(profileId);
+        Invitation invitation = invitationService.findInvitation(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (!acceptor.equals(invitation.getTarget())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The provided user cannot modify this invitation");
+        }
+
+        Object result = switch (invitation.getInvitationType()) {
+            case FRIENDSHIP -> invitationService.createFriendshipFromInvitation(invitation);
+            case PLAYLIST -> playlistService.acceptPlaylistInvitation(acceptor, invitation.getInvitedObjectID());
+        };
+
+        invitationService.delete(invitation);
+
+        return result;
     }
 
-    @PostMapping("/{id}/friendship")
-    public Friendship createNewFriendship(@PathVariable String id) {
-        return invitationService.createFriendshipFromInvitationId(id)
+    @PostMapping("/{id}/decline")
+    public void declineInvitation(@PathVariable String profileId, @PathVariable String id) {
+        Profile acceptor = resolveProfileOr404(profileId);
+        Invitation invitation = invitationService.findInvitation(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        if (!acceptor.equals(invitation.getTarget())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The provided user cannot modify this invitation");
+        }
+
+        switch (invitation.getInvitationType()) {
+            case FRIENDSHIP -> {
+            }
+            case PLAYLIST -> {
+                playlistService.deleteById(invitation.getInvitedObjectID());
+            }
+        }
+
+        invitationService.delete(invitation);
     }
 }
