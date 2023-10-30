@@ -123,4 +123,25 @@ public class MixtapeService {
                         .anyMatch(albumName::equals))
                 .collect(Collectors.toList());
     }
+
+    public void deleteMixtapeFromPlaylist(String playlistId, String mixtapeId) throws IOException {
+        // Grab mixtape
+        Mixtape mixtape = getById(mixtapeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape does not exist"));
+
+        // Find the playlist
+        Playlist playlist = playlistService.findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+
+        // Delete from playlist
+        playlist.getMixtapes().remove(mixtape);
+        playlistService.updatePlaylist(playlist, playlistId);
+
+        // Delete mixtape
+        repository.delete(mixtape);
+    }
+
+    public void deleteMixtape(Mixtape mixtape) {
+        repository.delete(mixtape);
+    }
 }

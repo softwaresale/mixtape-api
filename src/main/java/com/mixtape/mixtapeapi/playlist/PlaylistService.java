@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.playlist;
 
 import com.mixtape.mixtapeapi.invitation.InvitationService;
+import com.mixtape.mixtapeapi.mixtape.MixtapeService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.springframework.http.HttpStatus;
@@ -16,11 +17,13 @@ public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final TrackService trackService;
     private final InvitationService invitationService;
+    private final MixtapeService mixtapeService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService) {
+    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService, MixtapeService mixtapeService) {
         this.playlistRepository = playlistRepository;
         this.trackService = trackService;
         this.invitationService = invitationService;
+        this.mixtapeService = mixtapeService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -82,6 +85,15 @@ public class PlaylistService {
     }
 
     public void deleteById(String playlistId) {
+        // Check if exists
+        Playlist playlist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
+
+        // Delete mixtapes
+        playlist.getMixtapes().forEach(mixtapeService::deleteMixtape);
+
+
+        // Delete playlist
         this.playlistRepository.deleteById(playlistId);
     }
 }
