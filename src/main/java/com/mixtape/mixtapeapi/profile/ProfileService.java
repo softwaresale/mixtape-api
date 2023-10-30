@@ -45,24 +45,24 @@ public class ProfileService {
     public List<Profile> findAllUsersByDisplayName(String displayName) {
         return profileRepository.getAllByDisplayName(displayName);
     }
-
-    public Profile createProfileIfNotExists(OAuth2User oauth2User) {
-        logger.info("Creating profile for first time user {}", oauth2User);
-        Optional<Profile> existingProfile = findProfileBySpotifyId(oauth2User.getName());
-        if (existingProfile.isPresent()) {
-            logger.info("Profile {} already exists for spotify user {}", existingProfile.get().getId(), oauth2User.getName());
-            return existingProfile.get();
-        }
-        String spotifyId = oauth2User.getName();
-        String displayName = oauth2User.getAttribute("display_name");
-        ArrayList<Map<String, Object>> imagesObjs = oauth2User.getAttribute("images");
-        Optional<String> profilePic = findFirstProfilePic(imagesObjs);
-
-        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
+    public Profile saveProfile(Profile newProfile) {
         return profileRepository.save(newProfile);
     }
 
-    public Profile saveProfile(Profile newProfile) {
+
+    public Profile createProfileIfNotExists(OAuth2User newOAuth2User) {
+        logger.info("Creating profile for first time user {}", newOAuth2User);
+        Optional<Profile> existingProfile = findProfileBySpotifyId(newOAuth2User.getName());
+        if (existingProfile.isPresent()) {
+            logger.info("Profile {} already exists for spotify user {}", existingProfile.get().getId(), newOAuth2User.getName());
+            return existingProfile.get();
+        }
+        String spotifyId = newOAuth2User.getName();
+        String displayName = newOAuth2User.getAttribute("display_name");
+        ArrayList<Map<String, Object>> imagesObjs = newOAuth2User.getAttribute("images");
+        Optional<String> profilePic = findFirstProfilePic(imagesObjs);
+
+        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
         return profileRepository.save(newProfile);
     }
 }

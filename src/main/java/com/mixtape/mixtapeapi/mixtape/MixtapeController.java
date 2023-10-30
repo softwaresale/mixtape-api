@@ -55,12 +55,12 @@ public class MixtapeController extends AbstractRestController {
     }
 
     @PostMapping
-    public Mixtape createNewMixtape(@PathVariable String profileId, @PathVariable String playlistId, @RequestBody MixtapeDTO.Create createMixtapeDTO) throws IOException {
+    public Mixtape createNewMixtape(@PathVariable String profileId, @PathVariable String playlistId, @RequestBody MixtapeDTO.Create newMixtapeDTO) throws IOException {
         Profile creatingProfile = resolveProfileOr404(profileId);
-        if (createMixtapeDTO.songIDs.isEmpty()) {
+        if (newMixtapeDTO.songIDs.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Song IDs must not be empty");
         }
-        Mixtape newMixtape = new Mixtape(createMixtapeDTO);
+        Mixtape newMixtape = new Mixtape(newMixtapeDTO);
         return mixtapeService.createMixtapeForPlaylist(creatingProfile, playlistId, newMixtape);
     }
 

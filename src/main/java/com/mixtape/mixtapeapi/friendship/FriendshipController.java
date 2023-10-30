@@ -7,6 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,6 +37,24 @@ public class FriendshipController extends AbstractRestController {
     public List<Profile> getFriendsForProfile(@PathVariable String profileId) {
         Profile profile = resolveProfileOr404(profileId);
         return friendshipService.findFriendsForProfile(profile);
+    }
+
+    @PostMapping
+    public Friendship createFriendship(@PathVariable String profileId, @RequestBody Friendship newFriendship) {
+        Profile initiator = resolveProfileOr404(profileId);
+        return friendshipService.createFriendship(initiator, newFriendship);
+    }
+
+    @PutMapping("/{friendshipId}/accept")
+    public Friendship acceptFriendship(@PathVariable String profileId, @PathVariable String friendshipId) {
+        Profile profile = resolveProfileOr404(profileId);
+        return friendshipService.acceptFriendship(profile, friendshipId);
+    }
+
+    @DeleteMapping("/{friendshipId}/deny")
+    public void denyFriendship(@PathVariable String profileId, @PathVariable String friendshipId) {
+        Profile profile = resolveProfileOr404(profileId);
+        friendshipService.denyFriendship(profile, friendshipId);
     }
 
     @DeleteMapping("/{friendshipId}")

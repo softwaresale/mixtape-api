@@ -1,6 +1,6 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import com.mixtape.mixtapeapi.invitation.InvitationService;
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.springframework.http.HttpStatus;
@@ -15,14 +15,14 @@ import java.util.Optional;
 @Service
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
+    private final NotificationService notificationService;
     private final TrackService trackService;
-    private final InvitationService invitationService;
     private final PlaylistPicUploadService pictureUploadService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService, PlaylistPicUploadService pictureUploadService) {
+    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService) {
         this.playlistRepository = playlistRepository;
+        this.notificationService = notificationService;
         this.trackService = trackService;
-        this.invitationService = invitationService;
         this.pictureUploadService = pictureUploadService;
     }
 
@@ -49,13 +49,17 @@ public class PlaylistService {
         return playlists;
     }
 
-    public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create createPlaylist, Profile requestedTarget) {
+    public Playlist savePlaylist(Playlist playlist) {
+        return playlistRepository.save(playlist);
+    }
+
+    public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create newPlaylistDTO, Profile requestedTarget) {
         // Create the playlist
-        Playlist playlist = new Playlist(null, "", createPlaylist.name, initiator, null, createPlaylist.description, createPlaylist.coverPicURL);
+        Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
         playlist = savePlaylist(playlist);
 
-        // create an additional invitation for the playlist
-        invitationService.createInvitationFromPlaylist(playlist, requestedTarget);
+        // Create notification for accepting or denying playlist
+        notificationService.createNotificationFromPlaylist(playlist, requestedTarget);
 
         return playlist;
     }
@@ -67,8 +71,22 @@ public class PlaylistService {
         return savePlaylist(requestedPlaylist);
     }
 
-    public Playlist savePlaylist(Playlist playlist) {
-        return playlistRepository.save(playlist);
+    public Playlist acceptPlaylist(Profile target, String playlistId) {
+        // TODO
+        return null;
+    }
+
+    public void denyPlaylist(Profile target, String playlistId) {
+        // Grab friendship
+        Playlist playlist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
+
+        // Delete notification
+        notificationService.deleteNotificationFromPlaylist(playlist, target);
+
+        // Delete friendship
+        playlistRepository.delete(playlist);
+
     }
 
     public void removePlaylist(String playlistId) {

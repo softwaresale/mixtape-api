@@ -131,7 +131,7 @@ public class MixtapeService {
 
         // Check mixtape exists
         Mixtape mixtape = findMixtape(mixtapeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape does not exist"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
 
         // Check playlist contains mixtape
         if (!playlist.getMixtapes().contains(mixtape)) {
