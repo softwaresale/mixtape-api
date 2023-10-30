@@ -40,10 +40,19 @@ public class PlaylistService {
         return Optional.of(inflatedPlaylist);
     }
 
+    public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
+        List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
+        for (var playlist : playlists) {
+            trackService.inflatePlaylist(playlist);
+        }
+
+        return playlists;
+    }
+
     public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create createPlaylist, Profile requestedTarget) {
         // Create the playlist
         Playlist playlist = new Playlist(null, "", createPlaylist.name, initiator, null, createPlaylist.description, createPlaylist.coverPicURL);
-        playlist = save(playlist);
+        playlist = savePlaylist(playlist);
 
         // create an additional invitation for the playlist
         invitationService.createInvitationFromPlaylist(playlist, requestedTarget);
@@ -55,36 +64,14 @@ public class PlaylistService {
         Playlist requestedPlaylist = this.findPlaylist(playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         requestedPlaylist.setTarget(acceptor);
-        return save(requestedPlaylist);
+        return savePlaylist(requestedPlaylist);
     }
 
-    public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
-        List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
-        for (var playlist : playlists) {
-            trackService.inflatePlaylist(playlist);
-        }
-
-        return playlists;
-    }
-
-    public Playlist save(Playlist playlist) {
+    public Playlist savePlaylist(Playlist playlist) {
         return playlistRepository.save(playlist);
     }
 
-    public Optional<Playlist> updatePlaylist(Playlist playlist, String id) {
-        // Create Optional
-        Optional<Playlist> optionalPlaylist = Optional.empty();
-
-        // If exists, add to optional
-        if (playlistRepository.existsById(id)) {
-            optionalPlaylist = Optional.of(playlistRepository.save(playlist));
-        }
-
-        // Return final optional
-        return optionalPlaylist;
-    }
-
-    public void deleteById(String playlistId) {
+    public void removePlaylist(String playlistId) {
         this.playlistRepository.deleteById(playlistId);
     }
 
@@ -94,6 +81,6 @@ public class PlaylistService {
 
         String pictureURL = pictureUploadService.uploadPictureForPlaylist(playlistId, picture);
         requestedPlaylist.setCoverPicURL(pictureURL);
-        return save(requestedPlaylist);
+        return savePlaylist(requestedPlaylist);
     }
 }

@@ -24,20 +24,20 @@ public class FriendshipController extends AbstractRestController {
         this.friendshipService = friendshipService;
     }
 
+    @GetMapping("/{friendshipId}")
+    public Friendship getFriendship(@PathVariable String friendshipId) {
+        return friendshipService.findFriendship(friendshipId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
     @GetMapping("/friends")
     public List<Profile> getFriendsForProfile(@PathVariable String profileId) {
         Profile profile = resolveProfileOr404(profileId);
         return friendshipService.findFriendsForProfile(profile);
     }
 
-    @GetMapping("/{id}")
-    public Friendship getById(@PathVariable String id) {
-        return friendshipService.findFriendship(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    }
-
     @DeleteMapping("/{friendshipId}")
-    public void deleteById(@PathVariable String profileId, @PathVariable String friendshipId) throws IOException {
-        friendshipService.deleteFriendship(friendshipId);
+    public void deleteFriendship(@PathVariable String profileId, @PathVariable String friendshipId) throws IOException {
+        friendshipService.removeFriendship(friendshipId);
     }
 }

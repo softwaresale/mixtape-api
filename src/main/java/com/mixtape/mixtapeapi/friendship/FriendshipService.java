@@ -23,15 +23,8 @@ public class FriendshipService {
         this.playlistService = playlistService;
     }
 
-    public Optional<Friendship> findFriendship(String id) {
-        return friendshipRepository.findById(id);
-    }
-
-    public Friendship createFriendshipFromInvitation(Invitation invitation) {
-        // Create Friendship
-        Friendship newFriendship = new Friendship(null, invitation.getInitiator(), invitation.getTarget());
-        // Save to repository
-        return friendshipRepository.save(newFriendship);
+    public Optional<Friendship> findFriendship(String friendshipId) {
+        return friendshipRepository.findById(friendshipId);
     }
 
     public List<Profile> findFriendsForProfile(Profile profile) {
@@ -46,7 +39,14 @@ public class FriendshipService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteFriendship(String friendshipId) throws IOException {
+    public Friendship createFriendshipFromInvitation(Invitation invitation) {
+        // Create Friendship
+        Friendship newFriendship = new Friendship(null, invitation.getInitiator(), invitation.getTarget());
+        // Save to repository
+        return friendshipRepository.save(newFriendship);
+    }
+
+    public void removeFriendship(String friendshipId) throws IOException {
         // Grab friendship
         Friendship friendship = findFriendship(friendshipId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
@@ -56,6 +56,6 @@ public class FriendshipService {
                 .stream()
                 .filter(playlist -> playlist.getTarget().equals(friendship.getTarget()))
                 .map(Playlist::getId)
-                .forEach(playlistService::deleteById);
+                .forEach(playlistService::removePlaylist);
     }
 }

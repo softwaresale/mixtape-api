@@ -86,7 +86,7 @@ public class InvitationController extends AbstractRestController {
             case FRIENDSHIP -> {
             }
             case PLAYLIST -> {
-                playlistService.deleteById(invitation.getInvitedObjectID());
+                playlistService.removePlaylist(invitation.getInvitedObjectID());
             }
         }
 

@@ -5,7 +5,6 @@ import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
-import org.apache.hc.core5.http2.impl.io.FrameInputBuffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -111,7 +110,7 @@ public class InvitationControllerTest {
 
         verify(mockProfileService).findProfile(mockTarget.getId());
         verify(mockInvitationService).findInvitation(mockInvitation.getId());
-        verify(mockPlaylistService, never()).deleteById(any());
+        verify(mockPlaylistService, never()).removePlaylist(any());
         verify(mockInvitationService).delete(mockInvitation);
     }
 
@@ -126,7 +125,7 @@ public class InvitationControllerTest {
 
         verify(mockProfileService).findProfile(mockTarget.getId());
         verify(mockInvitationService).findInvitation(mockInvitation.getId());
-        verify(mockPlaylistService).deleteById("playlist-id");
+        verify(mockPlaylistService).removePlaylist("playlist-id");
         verify(mockInvitationService).delete(mockInvitation);
     }
 
@@ -143,7 +142,7 @@ public class InvitationControllerTest {
 
         verify(mockProfileService).findProfile(mockInitiator.getId());
         verify(mockInvitationService).findInvitation(mockInvitation.getId());
-        verify(mockPlaylistService, never()).deleteById(any());
+        verify(mockPlaylistService, never()).removePlaylist(any());
         verify(mockInvitationService, never()).delete(mockInvitation);
     }
 }

@@ -29,7 +29,7 @@ public class FriendshipServiceTest {
 
     @BeforeEach
     void setUp() {
-        friendshipService = new FriendshipService(mockRepository);
+        friendshipService = new FriendshipService(mockRepository, null);
     }
 
     @Test

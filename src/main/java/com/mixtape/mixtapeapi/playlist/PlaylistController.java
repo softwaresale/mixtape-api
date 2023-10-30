@@ -21,6 +21,13 @@ public class PlaylistController extends AbstractRestController {
         this.playlistService = playlistService;
     }
 
+    @GetMapping("/{playlistId}")
+    public Playlist getPlaylist(@PathVariable String profileId, @PathVariable String playlistId) throws IOException {
+        Profile profile = resolveProfileOr404(profileId);
+        return playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
+
     @GetMapping
     public List<Playlist> getPlaylistsForProfile(@PathVariable String profileId) throws IOException {
         Profile profile = resolveProfileOr404(profileId);
@@ -34,21 +41,8 @@ public class PlaylistController extends AbstractRestController {
         return playlistService.createPlaylist(initiator, createPlaylist, target);
     }
 
-    @GetMapping("/{id}")
-    public Playlist getById(@PathVariable String profileId, @PathVariable String id) throws IOException {
-        Profile profile = resolveProfileOr404(profileId);
-        return playlistService.findPlaylistForProfile(profile, id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    }
-
-    @PutMapping("/{id}")
-    public Playlist update(@PathVariable String profileId, @PathVariable String id, @RequestBody Playlist playlist) {
-        return playlistService.updatePlaylist(playlist, id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-    }
-
-    @PutMapping("/{id}/cover-pic")
-    public Playlist setCoverPic(@PathVariable String profileId, @PathVariable String id, @RequestParam("file") MultipartFile imageFile) throws IOException {
-        return playlistService.setPlaylistPicture(id, imageFile);
+    @PutMapping("/{playlistId}/cover-pic")
+    public Playlist setCoverPic(@PathVariable String profileId, @PathVariable String playlistId, @RequestParam("file") MultipartFile imageFile) throws IOException {
+        return playlistService.setPlaylistPicture(playlistId, imageFile);
     }
 }

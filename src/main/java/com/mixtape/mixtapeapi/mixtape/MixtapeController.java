@@ -39,15 +39,15 @@ public class MixtapeController extends AbstractRestController {
 
         // Check for query params
         if (title != null && songName == null && artistName == null && albumName == null) { // Title param
-            return mixtapeService.getAllForPlaylistByTitle(profile, playlistId, title);
+            return mixtapeService.findAllMixtapesForPlaylistByTitle(profile, playlistId, title);
         } else if (title == null && songName != null && artistName == null && albumName == null) { // Song name param
-            return mixtapeService.getAllForPlaylistBySongName(profile, playlistId, songName);
+            return mixtapeService.findAllMixtapesForPlaylistBySongName(profile, playlistId, songName);
         } else if (title == null && songName == null && artistName != null && albumName == null) { // Artist name param
-            return mixtapeService.getAllForPlaylistByArtistName(profile, playlistId, artistName);
+            return mixtapeService.findAllMixtapesForPlaylistByArtistName(profile, playlistId, artistName);
         } else if (title == null && songName == null && artistName == null && albumName != null) { // Album name param
-            return mixtapeService.getAllForPlaylistByAlbumName(profile, playlistId, albumName);
+            return mixtapeService.findAllMixtapesForPlaylistByAlbumName(profile, playlistId, albumName);
         } else if (title == null && songName == null && artistName == null && albumName == null) { // No Param
-            return mixtapeService.getAllForPlaylist(profile, playlistId);
+            return mixtapeService.findAllMixtapesForPlaylist(profile, playlistId);
         } else { // Bad request
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Only one or no param (title, song name, artist name, or album name) can be specified at a time");
@@ -67,12 +67,14 @@ public class MixtapeController extends AbstractRestController {
     @GetMapping("/{mixtapeId}")
     public Mixtape getMixtape(@PathVariable String profileId, @PathVariable String playlistId, @PathVariable String mixtapeId) throws IOException {
         // TODO add some sort of check with the playlist id
-        return mixtapeService.getById(mixtapeId)
+        return mixtapeService.findMixtape(mixtapeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{mixtapeId}")
     public void deleteMixtape(@PathVariable String profileId, @PathVariable String playlistId, @PathVariable String mixtapeId) throws IOException {
-        mixtapeService.deleteMixtapeFromPlaylist(playlistId, mixtapeId);
+        Profile profile = resolveProfileOr404(profileId);
+
+        mixtapeService.removeMixtape(profile, playlistId, mixtapeId);
     }
 }

@@ -17,12 +17,12 @@ public class ProfileController extends AbstractRestController {
     }
 
     @PostMapping
-    public Profile createNew(@RequestBody Profile newProfile) {
-        return profileService.save(newProfile);
+    public Profile createNewProfile(@RequestBody Profile newProfile) {
+        return profileService.saveProfile(newProfile);
     }
 
-    @GetMapping("/{id}")
-    public Profile getById(@PathVariable String id) {
-        return resolveProfileOr404(id);
+    @GetMapping("/{profileId}")
+    public Profile getProfile(@PathVariable String profileId) {
+        return resolveProfileOr404(profileId);
     }
 }

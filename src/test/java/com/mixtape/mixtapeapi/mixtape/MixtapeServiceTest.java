@@ -15,7 +15,6 @@ import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -58,7 +57,7 @@ public class MixtapeServiceTest {
 
         verify(mockPlaylistService).findPlaylist(mockPlaylistId);
         verify(mockTrackService).getMixtapeDuration(mockMixtape);
-        verify(mockPlaylistService).save(mockPlaylist);
+        verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
     }
 }
