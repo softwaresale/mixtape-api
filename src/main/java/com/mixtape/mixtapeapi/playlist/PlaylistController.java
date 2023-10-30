@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -46,4 +47,8 @@ public class PlaylistController extends AbstractRestController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
+    @PutMapping("/{id}/cover-pic")
+    public Playlist setCoverPic(@PathVariable String profileId, @PathVariable String id, @RequestParam("file") MultipartFile imageFile) throws IOException {
+        return playlistService.setPlaylistPicture(id, imageFile);
+    }
 }
