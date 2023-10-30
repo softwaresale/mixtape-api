@@ -140,4 +140,8 @@ public class MixtapeService {
         // Delete mixtape
         repository.delete(mixtape);
     }
+
+    public void deleteMixtape(Mixtape mixtape) {
+        repository.delete(mixtape);
+    }
 }
