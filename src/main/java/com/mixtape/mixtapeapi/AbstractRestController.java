@@ -30,6 +30,10 @@ public abstract class AbstractRestController {
      * @return The profile, if it exists
      */
     public Optional<Profile> resolveProfile(String requestedId) {
+        if (requestedId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile id must not be null");
+        }
+
         // if the id is "me", then use the current authenticated user
         String profileId = requestedId;
         if ("me".equals(profileId)) {
