@@ -19,18 +19,18 @@ import java.util.stream.Collectors;
 @Service
 public class MixtapeService {
 
-    private final MixtapeRepository repository;
+    private final MixtapeRepository mixtapeRepository;
     private final PlaylistService playlistService;
     private final TrackService trackService;
 
-    public MixtapeService(MixtapeRepository repository, PlaylistService playlistService, TrackService trackService) {
-        this.repository = repository;
+    public MixtapeService(MixtapeRepository mixtapeRepository, PlaylistService playlistService, TrackService trackService) {
+        this.mixtapeRepository = mixtapeRepository;
         this.playlistService = playlistService;
         this.trackService = trackService;
     }
 
     public Optional<Mixtape> findMixtape(String mixtapeId) throws IOException {
-        Optional<Mixtape> mixtapeOpt = repository.findById(mixtapeId);
+        Optional<Mixtape> mixtapeOpt = mixtapeRepository.findById(mixtapeId);
         if (mixtapeOpt.isEmpty()) {
             return mixtapeOpt;
         }
@@ -119,7 +119,7 @@ public class MixtapeService {
         newMixtape.setCreator(creator);
         Duration mixtapeDuration = trackService.getMixtapeDuration(newMixtape);
         newMixtape.setDurationMS(mixtapeDuration.toMillis());
-        Mixtape savedMixtape = repository.save(newMixtape);
+        Mixtape savedMixtape = mixtapeRepository.save(newMixtape);
         playlistService.savePlaylist(parentPlaylist);
         return savedMixtape;
     }
@@ -139,6 +139,6 @@ public class MixtapeService {
         }
 
         // Delete mixtape
-        repository.delete(mixtape);
+        mixtapeRepository.delete(mixtape);
     }
 }

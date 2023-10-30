@@ -16,17 +16,17 @@ public class ProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
 
-    private final ProfileRepository repository;
+    private final ProfileRepository profileRepository;
 
-    public ProfileService(ProfileRepository repository) {
-        this.repository = repository;
+    public ProfileService(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
     }
 
     public Optional<Profile> findProfile(String profileId) {
-        return repository.findById(profileId);
+        return profileRepository.findById(profileId);
     }
 
-    public Optional<Profile> findProfileBySpotifyId(String spotifyId) { return repository.findBySpotifyUID(spotifyId); }
+    public Optional<Profile> findProfileBySpotifyId(String spotifyId) { return profileRepository.findBySpotifyUID(spotifyId); }
 
     private Optional<String> findFirstProfilePic(@Nullable ArrayList<Map<String, Object>> imageObjects) {
         if (imageObjects == null) {
@@ -43,7 +43,7 @@ public class ProfileService {
     }
 
     public List<Profile> findAllUsersByDisplayName(String displayName) {
-        return repository.getAllByDisplayName(displayName);
+        return profileRepository.getAllByDisplayName(displayName);
     }
 
     public Profile createProfileIfNotExists(OAuth2User oauth2User) {
@@ -59,10 +59,10 @@ public class ProfileService {
         Optional<String> profilePic = findFirstProfilePic(imagesObjs);
 
         Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
-        return repository.save(newProfile);
+        return profileRepository.save(newProfile);
     }
 
     public Profile saveProfile(Profile newProfile) {
-        return repository.save(newProfile);
+        return profileRepository.save(newProfile);
     }
 }
