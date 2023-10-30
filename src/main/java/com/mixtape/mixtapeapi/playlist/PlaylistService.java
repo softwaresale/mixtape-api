@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -16,11 +17,13 @@ public class PlaylistService {
     private final PlaylistRepository playlistRepository;
     private final TrackService trackService;
     private final InvitationService invitationService;
+    private final PlaylistPicUploadService pictureUploadService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService) {
+    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService, PlaylistPicUploadService pictureUploadService) {
         this.playlistRepository = playlistRepository;
         this.trackService = trackService;
         this.invitationService = invitationService;
+        this.pictureUploadService = pictureUploadService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -83,5 +86,14 @@ public class PlaylistService {
 
     public void deleteById(String playlistId) {
         this.playlistRepository.deleteById(playlistId);
+    }
+
+    public Playlist setPlaylistPicture(String playlistId, MultipartFile picture) throws IOException {
+        Playlist requestedPlaylist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested playlist does not exist"));
+
+        String pictureURL = pictureUploadService.uploadPictureForPlaylist(playlistId, picture);
+        requestedPlaylist.setCoverPicURL(pictureURL);
+        return save(requestedPlaylist);
     }
 }

@@ -11,7 +11,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkException;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,12 +34,14 @@ public class PlaylistServiceTest {
     TrackService mockTrackService;
     @Mock
     InvitationService mockInvitationService;
+    @Mock
+    PlaylistPicUploadService mockPicUploadService;
 
     PlaylistService playlistService;
 
     @BeforeEach
     void beforeEach() {
-        playlistService = new PlaylistService(mockRepository, mockTrackService, mockInvitationService);
+        playlistService = new PlaylistService(mockRepository, mockTrackService, mockInvitationService, mockPicUploadService);
     }
 
     @Test
@@ -137,5 +143,41 @@ public class PlaylistServiceTest {
         );
 
         verify(mockRepository).save(any());
+    }
+
+    @Test
+    void setPlaylistPicture_shouldUploadPicture_whenUploadSuccessful() throws IOException {
+        Playlist playlist = new Playlist();
+        String id = "id1";
+        when(mockRepository.findById(id)).thenReturn(Optional.of(playlist));
+        MockMultipartFile file = new MockMultipartFile("file", "image/png", "me.png", new byte[10]);
+        when(mockPicUploadService.uploadPictureForPlaylist("id1", file)).thenReturn("some-pic-url");
+        when(mockRepository.save(any())).then((Answer<Playlist>) invocation -> {
+            Playlist result = (Playlist) invocation.getArguments()[0];
+            result.setId("pid");
+            return result;
+        });
+
+        Playlist updatedPlaylist = playlistService.setPlaylistPicture("id1", file);
+
+        assertThat(updatedPlaylist.getCoverPicURL()).isEqualTo("some-pic-url");
+        verify(mockPicUploadService).uploadPictureForPlaylist("id1", file);
+        verify(mockRepository).save(playlist);
+    }
+
+    @Test
+    void setPlaylistPicture_doesNothing_whenUploadFails() throws IOException {
+        Playlist playlist = new Playlist();
+        String id = "id1";
+        when(mockRepository.findById(id)).thenReturn(Optional.of(playlist));
+        MockMultipartFile file = new MockMultipartFile("file", "image/png", "me.png", new byte[10]);
+        when(mockPicUploadService.uploadPictureForPlaylist("id1", file)).thenThrow(AwsServiceException.create("fail", null));
+
+        assertThatThrownBy(() -> {
+            playlistService.setPlaylistPicture("id1", file);
+        }).isInstanceOf(SdkException.class);
+
+        verify(mockPicUploadService).uploadPictureForPlaylist("id1", file);
+        verify(mockRepository, never()).save(any());
     }
 }
