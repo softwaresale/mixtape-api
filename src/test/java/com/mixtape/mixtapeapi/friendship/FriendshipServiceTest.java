@@ -1,5 +1,7 @@
 package com.mixtape.mixtapeapi.friendship;
 
+import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,11 +27,17 @@ public class FriendshipServiceTest {
     @Mock
     FriendshipRepository mockRepository;
 
+    @Mock
+    PlaylistService mockPlaylistService;
+
+    @Mock
+    NotificationService mockNotificationService;
+
     FriendshipService friendshipService;
 
     @BeforeEach
     void setUp() {
-        friendshipService = new FriendshipService(mockRepository);
+        friendshipService = new FriendshipService(mockRepository, mockPlaylistService, mockNotificationService);
     }
 
     @Test

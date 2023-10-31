@@ -11,19 +11,19 @@ import se.michaelthelin.spotify.requests.authorization.client_credentials.Client
 import java.io.IOException;
 
 @Configuration
-public class SpotifyApiConfiguration {
+public class SpotifyApiConfig {
 
-    private final ClientConfiguration clientConfiguration;
+    private final ClientConfigProperties clientConfigProperties;
 
-    public SpotifyApiConfiguration(ClientConfiguration clientConfiguration) {
-        this.clientConfiguration = clientConfiguration;
+    public SpotifyApiConfig(ClientConfigProperties clientConfigProperties) {
+        this.clientConfigProperties = clientConfigProperties;
     }
 
     @Bean
     public ClientCredentialsRequest clientCredentialsRequest() {
         return new SpotifyApi.Builder()
-                .setClientId(clientConfiguration.getClientId())
-                .setClientSecret(clientConfiguration.getClientSecret())
+                .setClientId(clientConfigProperties.getClientId())
+                .setClientSecret(clientConfigProperties.getClientSecret())
                 .build()
                 .clientCredentials()
                 .build();

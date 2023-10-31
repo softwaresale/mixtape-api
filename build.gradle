@@ -19,6 +19,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	mavenLocal()
 }
 
 dependencies {
@@ -31,7 +32,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'se.michaelthelin.spotify:spotify-web-api-java:8.0.0'
+	implementation 'org.openapitools:onesignal-java-client:1.2.2'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
 
 	// AWS stuff
 	implementation(platform("software.amazon.awssdk:bom:2.21.1"))

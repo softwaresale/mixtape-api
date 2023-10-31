@@ -1,6 +1,6 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import com.mixtape.mixtapeapi.invitation.InvitationService;
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.springframework.http.HttpStatus;
@@ -15,14 +15,14 @@ import java.util.Optional;
 @Service
 public class PlaylistService {
     private final PlaylistRepository playlistRepository;
+    private final NotificationService notificationService;
     private final TrackService trackService;
-    private final InvitationService invitationService;
     private final PlaylistPicUploadService pictureUploadService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, TrackService trackService, InvitationService invitationService, PlaylistPicUploadService pictureUploadService) {
+    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService) {
         this.playlistRepository = playlistRepository;
+        this.notificationService = notificationService;
         this.trackService = trackService;
-        this.invitationService = invitationService;
         this.pictureUploadService = pictureUploadService;
     }
 
@@ -40,24 +40,6 @@ public class PlaylistService {
         return Optional.of(inflatedPlaylist);
     }
 
-    public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create createPlaylist, Profile requestedTarget) {
-        // Create the playlist
-        Playlist playlist = new Playlist(null, "", createPlaylist.name, initiator, null, createPlaylist.description, createPlaylist.coverPicURL);
-        playlist = save(playlist);
-
-        // create an additional invitation for the playlist
-        invitationService.createInvitationFromPlaylist(playlist, requestedTarget);
-
-        return playlist;
-    }
-
-    public Playlist acceptPlaylistInvitation(Profile acceptor, String playlistId) {
-        Playlist requestedPlaylist = this.findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        requestedPlaylist.setTarget(acceptor);
-        return save(requestedPlaylist);
-    }
-
     public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
         List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
         for (var playlist : playlists) {
@@ -67,25 +49,61 @@ public class PlaylistService {
         return playlists;
     }
 
-    public Playlist save(Playlist playlist) {
+    public Playlist savePlaylist(Playlist playlist) {
         return playlistRepository.save(playlist);
     }
 
-    public Optional<Playlist> updatePlaylist(Playlist playlist, String id) {
-        // Create Optional
-        Optional<Playlist> optionalPlaylist = Optional.empty();
+    public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create newPlaylistDTO, Profile requestedTarget) {
+        // Create the playlist
+        Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
+        playlist = savePlaylist(playlist);
 
-        // If exists, add to optional
-        if (playlistRepository.existsById(id)) {
-            optionalPlaylist = Optional.of(playlistRepository.save(playlist));
-        }
+        // Create notification for accepting or denying playlist
+        notificationService.createNotificationFromPlaylist(playlist, requestedTarget);
 
-        // Return final optional
-        return optionalPlaylist;
+        return playlist;
     }
 
-    public void deleteById(String playlistId) {
+    public Playlist acceptPlaylist(Profile target, String playlistId) {
+        // Grab playlist
+        Playlist playlist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
+
+        // Delete notification
+        notificationService.deleteNotificationFromPlaylist(playlist, target);
+
+        // Fill out fields to update
+        playlist.setTarget(target);
+
+        // Update playlist
+        return savePlaylist(playlist);
+    }
+
+    public void denyPlaylist(Profile target, String playlistId) {
+        // Grab playlist
+        Playlist playlist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
+
+        // Delete notification
+        notificationService.deleteNotificationFromPlaylist(playlist, target);
+
+        // Delete playlist
+        playlistRepository.delete(playlist);
+
+    }
+
+    public void removePlaylist(Profile profile, String playlistId) {
+        // Verify profile owns playlist
+        if (!playlistRepository.existsByIdAndInitiatorOrTarget(playlistId, profile, profile)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile given is not part of profile");
+        }
+
+        // Delete
         this.playlistRepository.deleteById(playlistId);
+    }
+
+    public void removePlaylistsByInitiatorAndTarget(Profile initiator, Profile target) {
+        playlistRepository.deleteAllByInitiatorAndTarget(initiator, target);
     }
 
     public Playlist setPlaylistPicture(String playlistId, MultipartFile picture) throws IOException {
@@ -94,6 +112,6 @@ public class PlaylistService {
 
         String pictureURL = pictureUploadService.uploadPictureForPlaylist(playlistId, picture);
         requestedPlaylist.setCoverPicURL(pictureURL);
-        return save(requestedPlaylist);
+        return savePlaylist(requestedPlaylist);
     }
 }

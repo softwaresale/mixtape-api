@@ -85,37 +85,6 @@ public class PlaylistServiceTest {
     }
 
     @Test
-    void updatePlaylist_exists() {
-        Playlist playlist = new Playlist();
-        String id = "id1";
-
-        when(mockRepository.existsById(id)).thenReturn(true);
-        when(mockRepository.save(playlist)).thenReturn(playlist);
-
-        Optional<Playlist> retVal = playlistService.updatePlaylist(playlist, id);
-
-        assertThat(retVal).hasValue(playlist);
-
-        verify(mockRepository).existsById(id);
-        verify(mockRepository).save(playlist);
-    }
-
-    @Test
-    void updatePlaylist_doesNotExist() {
-        Playlist playlist = new Playlist();
-        String id = "id1";
-
-        when(mockRepository.existsById(id)).thenReturn(false);
-
-        Optional<Playlist> retVal = playlistService.updatePlaylist(playlist, id);
-
-        assertThat(retVal).isEmpty();
-
-        verify(mockRepository).existsById(id);
-
-    }
-
-    @Test
     void createPlaylist_succeeds_whenDataValid() {
         Profile initiator = new Profile();
         Profile target = new Profile();
