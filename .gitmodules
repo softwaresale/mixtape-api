@@ -1,0 +1,3 @@
+[submodule "onesignal-java-api"]
+	path = onesignal-java-api
+	url = https://github.com/OneSignal/onesignal-java-api.git
