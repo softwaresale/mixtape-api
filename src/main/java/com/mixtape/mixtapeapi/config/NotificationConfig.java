@@ -24,7 +24,7 @@ public class NotificationConfig {
         return client;
     }
 
-    public DefaultApi setUserKeyAndCreateApi(ApiClient client, String userKey) {
+    public static DefaultApi setUserKeyAndCreateApi(ApiClient client, String userKey) {
         HttpBearerAuth userKeyAuth = (HttpBearerAuth) client.getAuthentication("user_key");
         userKeyAuth.setBearerToken(userKey);
         return new DefaultApi(client);
