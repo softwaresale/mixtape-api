@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.mixtape;
 
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -30,12 +31,14 @@ public class MixtapeServiceTest {
 
     @Mock
     TrackService mockTrackService;
+    @Mock
+    NotificationService mockNotificationService;
 
     MixtapeService mixtapeService;
 
     @BeforeEach
     void beforeEach() {
-        mixtapeService = new MixtapeService(mockMixtapeRepository, mockReactionRepository, mockPlaylistService, mockTrackService);
+        mixtapeService = new MixtapeService(mockMixtapeRepository, mockReactionRepository, mockPlaylistService, mockTrackService, mockNotificationService);
     }
 
     @Test

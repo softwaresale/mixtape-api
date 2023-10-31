@@ -155,7 +155,7 @@ public class MixtapeService {
     }
 
     public Mixtape createOrUpdateReactionForMixtape(String mixtapeId, Profile reactingUser, ReactionType reactionType) throws IOException {
-        Mixtape mixtape = getById(mixtapeId)
+        Mixtape mixtape = findMixtape(mixtapeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
 
         // This exact thing already exists, so do nothing
@@ -177,7 +177,7 @@ public class MixtapeService {
         return mixtapeRepository.save(mixtape);
     }
 
-    public List<Reaction> getAllReactionsForMixtape(String playlistId, String mixtapeId) throws IOException {
+    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) throws IOException {
         return findMixtape(mixtapeId)
                 .map(Mixtape::getReactions)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));

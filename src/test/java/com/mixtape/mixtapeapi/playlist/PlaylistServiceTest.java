@@ -1,7 +1,7 @@
 package com.mixtape.mixtapeapi.playlist;
 
-import com.mixtape.mixtapeapi.invitation.InvitationService;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -33,15 +32,15 @@ public class PlaylistServiceTest {
     @Mock
     TrackService mockTrackService;
     @Mock
-    InvitationService mockInvitationService;
-    @Mock
     PlaylistPicUploadService mockPicUploadService;
+    @Mock
+    NotificationService mockNotificationService;
 
     PlaylistService playlistService;
 
     @BeforeEach
     void beforeEach() {
-        playlistService = new PlaylistService(mockRepository, mockTrackService, mockInvitationService, mockPicUploadService);
+        playlistService = new PlaylistService(mockRepository, mockNotificationService, mockTrackService, mockPicUploadService);
     }
 
     @Test
@@ -103,13 +102,6 @@ public class PlaylistServiceTest {
         assertThat(resultingPlaylist.getCoverPicURL()).isEqualTo("pic-url");
         assertThat(resultingPlaylist.getInitiator()).isEqualTo(initiator);
         assertThat(resultingPlaylist.getTarget()).isNull();
-
-        verify(mockInvitationService).createInvitationFromPlaylist(
-                assertArg(playlist -> {
-                    assertThat(playlist.getId()).isEqualTo("pid");
-                }),
-                eq(target)
-        );
 
         verify(mockRepository).save(any());
     }
