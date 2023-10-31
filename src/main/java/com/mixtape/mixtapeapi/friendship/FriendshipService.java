@@ -48,13 +48,12 @@ public class FriendshipService {
         }
 
         // Create Friendship
-        Friendship friendship = new Friendship(null, initiator, null);
-        friendshipRepository.save(friendship);
+        Friendship savedFriendship = friendshipRepository.save(newFriendship);
 
         // Create notification for accepting or denying playlist
-        notificationService.createNotificationFromFriendship(friendship, requestedTarget);
+        notificationService.createNotificationFromFriendship(savedFriendship, requestedTarget);
 
-        return friendship;
+        return savedFriendship;
     }
 
     public Friendship acceptFriendship(Profile target, String friendshipId) {
