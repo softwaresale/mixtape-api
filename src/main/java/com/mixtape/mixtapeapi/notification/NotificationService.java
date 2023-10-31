@@ -58,19 +58,19 @@ public class NotificationService {
 
     public void deleteNotificationFromPlaylist(Playlist playlist, Profile target) {
         // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternal_id(target, playlist.getId())
+        notificationRepository.findByTargetAndExternalId(target, playlist.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
 
         // Delete notification
-        notificationRepository.deleteByTargetAndExternal_id(target, playlist.getId());
+        notificationRepository.deleteByTargetAndExternalId(target, playlist.getId());
     }
 
     public void deleteNotificationFromFriendship(Friendship friendship, Profile target) {
         // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternal_id(target, friendship.getId())
+        notificationRepository.findByTargetAndExternalId(target, friendship.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This friendship was not for given profile"));
 
         // Delete notification
-        notificationRepository.deleteByTargetAndExternal_id(target, friendship.getId());
+        notificationRepository.deleteByTargetAndExternalId(target, friendship.getId());
     }
 }

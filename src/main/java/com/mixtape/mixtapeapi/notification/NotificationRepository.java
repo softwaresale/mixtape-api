@@ -9,8 +9,8 @@ import java.util.Optional;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, String> {
-    Optional<Notification> findByTargetAndExternal_id(Profile target, String external_id);
+    Optional<Notification> findByTargetAndExternalId(Profile target, String externalId);
     List<Notification> findAllByTarget(Profile target);
 
-    void deleteByTargetAndExternal_id(Profile target, String external_id);
+    void deleteByTargetAndExternalId(Profile target, String externalId);
 }

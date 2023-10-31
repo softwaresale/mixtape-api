@@ -24,14 +24,14 @@ public class Notification {
 
     private NotificationType notificationType;
 
-    private String external_id;
+    private String externalId;
 
-    public Notification(String id, Profile target, String contents, NotificationType notificationType, String external_id) {
+    public Notification(String id, Profile target, String contents, NotificationType notificationType, String externalId) {
         this.id = id;
         this.target = target;
         this.contents = contents;
         this.notificationType = notificationType;
-        this.external_id = external_id;
+        this.externalId = externalId;
     }
 
 
@@ -71,11 +71,11 @@ public class Notification {
         this.notificationType = notificationType;
     }
 
-    public String getExternal_id() {
-        return external_id;
+    public String getExternalId() {
+        return externalId;
     }
 
-    public void setExternal_id(String external_id) {
-        this.external_id = external_id;
+    public void setExternalId(String external_id) {
+        this.externalId = external_id;
     }
 }
