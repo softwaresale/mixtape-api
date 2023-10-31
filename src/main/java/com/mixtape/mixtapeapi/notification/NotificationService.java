@@ -59,7 +59,7 @@ public class NotificationService {
     public void deleteNotificationFromPlaylist(Playlist playlist, Profile target) {
         // Check if target was invited to playlist
         notificationRepository.findByTargetAndExternal_id(target, playlist.getId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
 
         // Delete notification
         notificationRepository.deleteByTargetAndExternal_id(target, playlist.getId());
