@@ -4,7 +4,9 @@ import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.profile.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -55,10 +57,20 @@ public class NotificationService {
     }
 
     public void deleteNotificationFromPlaylist(Playlist playlist, Profile target) {
+        // Check if target was invited to playlist
+        notificationRepository.findByTargetAndExternal_id(target, playlist.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
+
+        // Delete notification
         notificationRepository.deleteByTargetAndExternal_id(target, playlist.getId());
     }
 
     public void deleteNotificationFromFriendship(Friendship friendship, Profile target) {
+        // Check if target was invited to playlist
+        notificationRepository.findByTargetAndExternal_id(target, friendship.getId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This friendship was not for given profile"));
+
+        // Delete notification
         notificationRepository.deleteByTargetAndExternal_id(target, friendship.getId());
     }
 }

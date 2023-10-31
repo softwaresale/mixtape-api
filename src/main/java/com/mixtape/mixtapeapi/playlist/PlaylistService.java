@@ -64,27 +64,30 @@ public class PlaylistService {
         return playlist;
     }
 
-    public Playlist acceptPlaylistInvitation(Profile acceptor, String playlistId) {
-        Playlist requestedPlaylist = this.findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        requestedPlaylist.setTarget(acceptor);
-        return savePlaylist(requestedPlaylist);
-    }
-
     public Playlist acceptPlaylist(Profile target, String playlistId) {
-        // TODO
-        return null;
-    }
-
-    public void denyPlaylist(Profile target, String playlistId) {
-        // Grab friendship
+        // Grab playlist
         Playlist playlist = findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
 
         // Delete notification
         notificationService.deleteNotificationFromPlaylist(playlist, target);
 
-        // Delete friendship
+        // Fill out fields to update
+        playlist.setTarget(target);
+
+        // Update playlist
+        return savePlaylist(playlist);
+    }
+
+    public void denyPlaylist(Profile target, String playlistId) {
+        // Grab playlist
+        Playlist playlist = findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
+
+        // Delete notification
+        notificationService.deleteNotificationFromPlaylist(playlist, target);
+
+        // Delete playlist
         playlistRepository.delete(playlist);
 
     }

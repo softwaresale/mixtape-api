@@ -42,7 +42,8 @@ public class FriendshipController extends AbstractRestController {
     @PostMapping
     public Friendship createFriendship(@PathVariable String profileId, @RequestBody Friendship newFriendship) {
         Profile initiator = resolveProfileOr404(profileId);
-        return friendshipService.createFriendship(initiator, newFriendship);
+        Profile requestedTarget = newFriendship.getTarget();
+        return friendshipService.createFriendship(initiator, newFriendship, requestedTarget);
     }
 
     @PutMapping("/{friendshipId}/accept")
