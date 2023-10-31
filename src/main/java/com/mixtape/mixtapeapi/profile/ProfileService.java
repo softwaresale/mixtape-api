@@ -16,44 +16,24 @@ public class ProfileService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
 
-    private final ProfileRepository repository;
+    private final ProfileRepository profileRepository;
 
-    public ProfileService(ProfileRepository repository) {
-        this.repository = repository;
+    public ProfileService(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
     }
 
     public Optional<Profile> findProfile(String id) {
-        return repository.findById(id);
+        return profileRepository.findById(id);
     }
 
-    public Optional<Profile> findProfileBySpotifyId(String id) { return repository.findBySpotifyUID(id); }
+    public Optional<Profile> findProfileBySpotifyId(String id) { return profileRepository.findBySpotifyUID(id); }
 
     public List<Profile> searchProfilesByDisplayName(String displayName) {
         String queryValue = String.format("%%%s%%", displayName);
-        return repository.searchProfilesByDisplayNameLikeIgnoreCase(queryValue);
+        return profileRepository.searchProfilesByDisplayNameLikeIgnoreCase(queryValue);
     }
 
-    public Profile save(Profile newProfile) {
-        return repository.save(newProfile);
-    }
-
-    public Profile createProfileIfNotExists(OAuth2User oauth2User) {
-        logger.info("Creating profile for first time user {}", oauth2User);
-        Optional<Profile> existingProfile = findProfileBySpotifyId(oauth2User.getName());
-        if (existingProfile.isPresent()) {
-            logger.info("Profile {} already exists for spotify user {}", existingProfile.get().getId(), oauth2User.getName());
-            return existingProfile.get();
-        }
-        String spotifyId = oauth2User.getName();
-        String displayName = oauth2User.getAttribute("display_name");
-        ArrayList<Map<String, Object>> imagesObjs = oauth2User.getAttribute("images");
-        Optional<String> profilePic = getFirstProfilePic(imagesObjs);
-
-        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
-        return repository.save(newProfile);
-    }
-
-    private Optional<String> getFirstProfilePic(@Nullable ArrayList<Map<String, Object>> imageObjects) {
+    private Optional<String> findFirstProfilePic(@Nullable ArrayList<Map<String, Object>> imageObjects) {
         if (imageObjects == null) {
             return Optional.empty();
         }
@@ -68,6 +48,26 @@ public class ProfileService {
     }
 
     public List<Profile> findAllUsersByDisplayName(String displayName) {
-        return repository.getAllByDisplayName(displayName);
+        return profileRepository.getAllByDisplayName(displayName);
+    }
+
+    public Profile saveProfile(Profile newProfile) {
+        return profileRepository.save(newProfile);
+    }
+
+    public Profile createProfileIfNotExists(OAuth2User newOAuth2User) {
+        logger.info("Creating profile for first time user {}", newOAuth2User);
+        Optional<Profile> existingProfile = findProfileBySpotifyId(newOAuth2User.getName());
+        if (existingProfile.isPresent()) {
+            logger.info("Profile {} already exists for spotify user {}", existingProfile.get().getId(), newOAuth2User.getName());
+            return existingProfile.get();
+        }
+        String spotifyId = newOAuth2User.getName();
+        String displayName = newOAuth2User.getAttribute("display_name");
+        ArrayList<Map<String, Object>> imagesObjs = newOAuth2User.getAttribute("images");
+        Optional<String> profilePic = findFirstProfilePic(imagesObjs);
+
+        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
+        return profileRepository.save(newProfile);
     }
 }

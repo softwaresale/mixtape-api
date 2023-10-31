@@ -13,12 +13,9 @@ import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +59,7 @@ public class MixtapeServiceTest {
 
         verify(mockPlaylistService).findPlaylist(mockPlaylistId);
         verify(mockTrackService).getMixtapeDuration(mockMixtape);
-        verify(mockPlaylistService).save(mockPlaylist);
+        verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
     }
 

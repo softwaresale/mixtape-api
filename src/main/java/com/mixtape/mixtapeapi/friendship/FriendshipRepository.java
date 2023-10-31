@@ -14,5 +14,7 @@ import java.util.Optional;
 public interface FriendshipRepository extends JpaRepository<Friendship, String> {
     Optional<Friendship> findById(@NonNull String id);
 
+    Optional<Friendship> findByIdAndInitiatorOrTarget(String id, Profile initiator, Profile target);
+
     List<Friendship> findAllByInitiatorOrTarget(Profile initiator, Profile target);
 }
