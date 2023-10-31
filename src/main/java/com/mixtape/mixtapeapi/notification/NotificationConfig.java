@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 
 @Configuration
@@ -43,9 +44,17 @@ public class NotificationConfig {
         return new OneSignalDefaultApiFactory(defaultNotificationApi());
     }
 
+    @Profile("!prod")
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public PushNotificationService pushNotificationService() {
+    public PushNotificationService oneSignalNotificationService() {
         return new OneSignalPushNotificationService(oneSignalDefaultApiFactory(), notificationsAppId());
+    }
+
+    @Profile("prod")
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public PushNotificationService nopPushNotificationService() {
+        return new NopPushNotificationService();
     }
 }
