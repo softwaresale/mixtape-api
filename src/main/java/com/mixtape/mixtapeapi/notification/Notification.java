@@ -78,4 +78,16 @@ public class Notification {
     public void setExternalId(String external_id) {
         this.externalId = external_id;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Notification{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", target=").append(target);
+        sb.append(", contents='").append(contents).append('\'');
+        sb.append(", notificationType=").append(notificationType);
+        sb.append(", externalId='").append(externalId).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }
