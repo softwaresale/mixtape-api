@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Entity
 public class Mixtape {
@@ -30,15 +32,18 @@ public class Mixtape {
     @Transient
     private List<TrackInfo> songs;
 
+    @OneToMany(cascade = CascadeType.REMOVE)
+    private List<Reaction> reactions;
+
     public Mixtape() {
-        this("", "", "", LocalDateTime.now(), "", 0L, null, new ArrayList<>());
+        this("", "", "", LocalDateTime.now(), "", 0L, null, new ArrayList<>(), new ArrayList<>());
     }
 
     public Mixtape(MixtapeDTO.Create createDTO) {
-        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs);
+        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs, new ArrayList<>());
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs) {
+    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs, List<Reaction> reactions) {
         this.id = id;
         this.playlistID = playlistID;
         this.name = name;
@@ -47,7 +52,7 @@ public class Mixtape {
         this.durationMS = durationMS;
         this.creator = creator;
         this.songIDs = songIDs;
-
+        this.reactions = reactions;
     }
 
     public String getId() {
@@ -124,5 +129,55 @@ public class Mixtape {
 
     public void setDurationMS(Long durationMS) {
         this.durationMS = durationMS;
+    }
+
+    public List<Reaction> getReactions() {
+        return reactions;
+    }
+
+    public void setReactions(List<Reaction> reactions) {
+        this.reactions = reactions;
+    }
+
+    public void addReaction(Reaction reaction) {
+        Optional<Reaction> existingReaction = this.reactions.stream()
+                .filter(existing -> existing.getId().equals(reaction.getId()))
+                .findFirst();
+
+        existingReaction.ifPresent((existing) -> {
+            this.reactions.remove(existing);
+        });
+
+        this.reactions.add(reaction);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Mixtape mixtape = (Mixtape) o;
+        return Objects.equals(id, mixtape.id) && Objects.equals(playlistID, mixtape.playlistID) && Objects.equals(name, mixtape.name) && Objects.equals(createdAt, mixtape.createdAt) && Objects.equals(description, mixtape.description) && Objects.equals(durationMS, mixtape.durationMS) && Objects.equals(creator, mixtape.creator) && Objects.equals(songIDs, mixtape.songIDs) && Objects.equals(songs, mixtape.songs) && Objects.equals(reactions, mixtape.reactions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, playlistID, name, createdAt, description, durationMS, creator, songIDs, songs, reactions);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Mixtape{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", playlistID='").append(playlistID).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", createdAt=").append(createdAt);
+        sb.append(", description='").append(description).append('\'');
+        sb.append(", durationMS=").append(durationMS);
+        sb.append(", creator=").append(creator);
+        sb.append(", songIDs=").append(songIDs);
+        sb.append(", songs=").append(songs);
+        sb.append(", reactions=").append(reactions);
+        sb.append('}');
+        return sb.toString();
     }
 }

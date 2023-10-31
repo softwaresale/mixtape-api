@@ -9,20 +9,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class MixtapeServiceTest {
     @Mock
     MixtapeRepository mockMixtapeRepository;
+    @Mock
+    ReactionRepository mockReactionRepository;
 
     @Mock
     PlaylistService mockPlaylistService;
@@ -34,7 +38,7 @@ public class MixtapeServiceTest {
 
     @BeforeEach
     void beforeEach() {
-        mixtapeService = new MixtapeService(mockMixtapeRepository, mockPlaylistService, mockTrackService);
+        mixtapeService = new MixtapeService(mockMixtapeRepository, mockReactionRepository, mockPlaylistService, mockTrackService);
     }
 
     @Test
@@ -60,5 +64,78 @@ public class MixtapeServiceTest {
         verify(mockTrackService).getMixtapeDuration(mockMixtape);
         verify(mockPlaylistService).save(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
+    }
+
+    @Test
+    void createOrUpdateReactionForMixtape_doesNothing_whenReactionAlreadyExists() throws IOException {
+        Mixtape mixtape = new Mixtape();
+        mixtape.setId("mixtape-id");
+        Profile reactingUser = new Profile();
+        reactingUser.setId("user-id");
+
+        when(mockMixtapeRepository.findById("mixtape-id")).thenReturn(Optional.of(mixtape));
+        when(mockReactionRepository.existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.LIKE)).thenReturn(true);
+
+        Mixtape existingMixtape = mixtapeService.createOrUpdateReactionForMixtape(mixtape.getId(), reactingUser, ReactionType.LIKE);
+
+        // this should just be passed down
+        assertThat(existingMixtape).isSameAs(mixtape);
+
+        verify(mockReactionRepository).existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.LIKE);
+        verify(mockReactionRepository, never()).findByReactorAndMixtape(any(), any());
+        verify(mockReactionRepository, never()).save(any());
+        verify(mockMixtapeRepository, never()).save(any());
+    }
+
+    @Test
+    void createOrUpdateReactionForMixtape_createsNewReaction_forNewReactionFromUser() throws IOException {
+        Mixtape mixtape = new Mixtape();
+        mixtape.setId("mixtape-id");
+        Profile reactingUser = new Profile();
+        reactingUser.setId("user-id");
+
+        when(mockMixtapeRepository.findById("mixtape-id")).thenReturn(Optional.of(mixtape));
+        when(mockReactionRepository.existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.LIKE)).thenReturn(false);
+        when(mockReactionRepository.findByReactorAndMixtape(reactingUser, mixtape)).thenReturn(Optional.empty());
+        when(mockReactionRepository.save(any())).then((Answer<Reaction>) reaction -> (Reaction) reaction.getArguments()[0]);
+        when(mockMixtapeRepository.save(any())).then((Answer<Mixtape>) reaction -> (Mixtape) reaction.getArguments()[0]);
+
+        Mixtape existingMixtape = mixtapeService.createOrUpdateReactionForMixtape(mixtape.getId(), reactingUser, ReactionType.LIKE);
+
+        // this should just be passed down
+        assertThat(existingMixtape).isSameAs(mixtape);
+        assertThat(existingMixtape.getReactions()).contains(new Reaction(null, reactingUser, ReactionType.LIKE, mixtape));
+
+        verify(mockReactionRepository).existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.LIKE);
+        verify(mockReactionRepository).findByReactorAndMixtape(reactingUser, mixtape);
+        verify(mockReactionRepository).save(any());
+        verify(mockMixtapeRepository).save(any());
+    }
+
+    @Test
+    void createOrUpdateReactionForMixtape_updatesExistingReaction_forExistingReaction() throws IOException {
+        Mixtape mixtape = new Mixtape();
+        mixtape.setId("mixtape-id");
+        Profile reactingUser = new Profile();
+        reactingUser.setId("user-id");
+        Reaction existingReaction = new Reaction(0, reactingUser, ReactionType.LIKE, mixtape);
+        mixtape.addReaction(existingReaction);
+
+        when(mockMixtapeRepository.findById("mixtape-id")).thenReturn(Optional.of(mixtape));
+        when(mockReactionRepository.existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.DISLIKE)).thenReturn(false);
+        when(mockReactionRepository.findByReactorAndMixtape(reactingUser, mixtape)).thenReturn(Optional.of(existingReaction));
+        when(mockReactionRepository.save(any())).then((Answer<Reaction>) reaction -> (Reaction) reaction.getArguments()[0]);
+        when(mockMixtapeRepository.save(any())).then((Answer<Mixtape>) reaction -> (Mixtape) reaction.getArguments()[0]);
+
+        Mixtape existingMixtape = mixtapeService.createOrUpdateReactionForMixtape(mixtape.getId(), reactingUser, ReactionType.DISLIKE);
+
+        // this should just be passed down
+        assertThat(existingMixtape).isSameAs(mixtape);
+        assertThat(existingMixtape.getReactions()).containsExactly(new Reaction(0, reactingUser, ReactionType.DISLIKE, mixtape));
+
+        verify(mockReactionRepository).existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, ReactionType.DISLIKE);
+        verify(mockReactionRepository).findByReactorAndMixtape(reactingUser, mixtape);
+        verify(mockReactionRepository).save(any());
+        verify(mockMixtapeRepository).save(any());
     }
 }
