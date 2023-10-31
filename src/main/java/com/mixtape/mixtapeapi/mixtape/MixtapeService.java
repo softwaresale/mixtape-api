@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.mixtape;
 
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -22,11 +23,13 @@ public class MixtapeService {
     private final MixtapeRepository mixtapeRepository;
     private final PlaylistService playlistService;
     private final TrackService trackService;
+    private final NotificationService notificationService;
 
-    public MixtapeService(MixtapeRepository mixtapeRepository, PlaylistService playlistService, TrackService trackService) {
+    public MixtapeService(MixtapeRepository mixtapeRepository, PlaylistService playlistService, TrackService trackService, NotificationService notificationService) {
         this.mixtapeRepository = mixtapeRepository;
         this.playlistService = playlistService;
         this.trackService = trackService;
+        this.notificationService = notificationService;
     }
 
     public Optional<Mixtape> findMixtape(String mixtapeId) throws IOException {
@@ -110,17 +113,26 @@ public class MixtapeService {
     }
 
     public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) throws IOException {
-        // find the playlist
-        Playlist parentPlaylist = playlistService.findPlaylist(playlistId)
+        // Find the playlist
+        Playlist playlist = playlistService.findPlaylist(playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
 
-        parentPlaylist.addMixtape(newMixtape);
-        newMixtape.setPlaylistID(parentPlaylist.getId());
+        // Add to playlist and set items
+        playlist.addMixtape(newMixtape);
+        newMixtape.setPlaylistID(playlist.getId());
         newMixtape.setCreator(creator);
         Duration mixtapeDuration = trackService.getMixtapeDuration(newMixtape);
         newMixtape.setDurationMS(mixtapeDuration.toMillis());
+
+        // Save mixtape
         Mixtape savedMixtape = mixtapeRepository.save(newMixtape);
-        playlistService.savePlaylist(parentPlaylist);
+
+        // Save new playlist
+        playlistService.savePlaylist(playlist);
+
+        // Create notification
+        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget());
+
         return savedMixtape;
     }
 
