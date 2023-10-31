@@ -63,4 +63,10 @@ public class ProfileServiceTest {
         verify(mockProfileRepository).findBySpotifyUID(USER_ID);
         verify(mockProfileRepository, times(0)).save(any());
     }
+
+    @Test
+    void searchProfile_callsWithAFuzzyString() {
+        profileService.searchProfilesByDisplayName("user");
+        verify(mockProfileRepository).searchProfilesByDisplayNameLikeIgnoreCase("%user%");
+    }
 }

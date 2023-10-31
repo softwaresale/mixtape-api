@@ -28,6 +28,11 @@ public class ProfileService {
 
     public Optional<Profile> findProfileBySpotifyId(String id) { return repository.findBySpotifyUID(id); }
 
+    public List<Profile> searchProfilesByDisplayName(String displayName) {
+        String queryValue = String.format("%%%s%%", displayName);
+        return repository.searchProfilesByDisplayNameLikeIgnoreCase(queryValue);
+    }
+
     public Profile save(Profile newProfile) {
         return repository.save(newProfile);
     }

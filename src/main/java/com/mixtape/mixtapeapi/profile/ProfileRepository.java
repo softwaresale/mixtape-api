@@ -14,4 +14,5 @@ public interface ProfileRepository extends JpaRepository<Profile, String> {
     Optional<Profile> findById(@NonNull String id);
     Optional<Profile> findBySpotifyUID(@NonNull String spotifyUID);
     List<Profile> getAllByDisplayName(@NonNull String displayName);
+    List<Profile> searchProfilesByDisplayNameLikeIgnoreCase(@NonNull String query);
 }
