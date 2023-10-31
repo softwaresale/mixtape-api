@@ -1,14 +1,12 @@
 package com.mixtape.mixtapeapi.friendship;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
-import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,19 +39,15 @@ public class FriendshipService {
                 .collect(Collectors.toList());
     }
 
-    public Friendship createFriendship(Profile initiator, Friendship newFriendship, Profile requestedTarget) {
-        // Verify initiator is same with friendship
-        if (!initiator.equals(newFriendship.getInitiator())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Initiator does not match current user");
-        }
-
-        // Create Friendship
-        Friendship savedFriendship = friendshipRepository.save(newFriendship);
+    public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
+        // Create friendship
+        Friendship friendship = new Friendship(null, initiator, requestedTarget);
+        friendship = friendshipRepository.save(friendship);
 
         // Create notification for accepting or denying playlist
-        notificationService.createNotificationFromFriendship(savedFriendship, requestedTarget);
+        notificationService.createNotificationFromFriendship(friendship, requestedTarget);
 
-        return savedFriendship;
+        return friendship;
     }
 
     public Friendship acceptFriendship(Profile target, String friendshipId) {
@@ -83,17 +77,13 @@ public class FriendshipService {
         friendshipRepository.delete(friendship);
     }
 
-    public void removeFriendship(String friendshipId) throws IOException {
-        // Grab friendship
-        Friendship friendship = findFriendship(friendshipId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Friendship does not exist"));
+    public void removeFriendship(Profile profile, String friendshipId) {
+        // Verify profile and friendship matches
+        Friendship friendship = friendshipRepository.findByIdAndInitiatorOrTarget(friendshipId, profile, profile)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile with given friendship does not exist"));
 
-        // Delete playlists between them
-        playlistService.findPlaylistsForProfile(friendship.getInitiator())
-                .stream()
-                .filter(playlist -> playlist.getTarget().equals(friendship.getTarget()))
-                .map(Playlist::getId)
-                .forEach(playlistService::removePlaylist);
+        // Delete all playlists between them
+        playlistService.removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
 
         // Delete friendship
         friendshipRepository.delete(friendship);

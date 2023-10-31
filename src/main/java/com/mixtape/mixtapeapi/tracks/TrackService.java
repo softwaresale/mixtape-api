@@ -43,13 +43,26 @@ public class TrackService {
     }
 
     public Playlist inflatePlaylist(Playlist playlist) throws IOException {
+        // Grab mixtapes
         List<Mixtape> mixtapes = playlist.getMixtapes();
-        for (var mixtape : mixtapes) {
+
+        // Inflate
+        mixtapes = inflateMixtapes(mixtapes);
+
+        // Set and return
+        playlist.setMixtapes(mixtapes);
+        return playlist;
+    }
+
+    public List<Mixtape> inflateMixtapes(List<Mixtape> mixtapes) throws IOException {
+        // Fill mixtape
+        for (Mixtape mixtape : mixtapes) {
             List<TrackInfo> trackInfos = getTrackInfoForMixtape(mixtape);
             mixtape.setSongs(trackInfos);
         }
-        playlist.setMixtapes(mixtapes);
-        return playlist;
+
+        // Return
+        return mixtapes;
     }
 
     public Duration getMixtapeDuration(Mixtape mixtape) throws IOException {

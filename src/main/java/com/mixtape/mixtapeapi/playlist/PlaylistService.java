@@ -92,8 +92,18 @@ public class PlaylistService {
 
     }
 
-    public void removePlaylist(String playlistId) {
+    public void removePlaylist(Profile profile, String playlistId) {
+        // Verify profile owns playlist
+        if (!playlistRepository.existsByIdAndInitiatorOrTarget(playlistId, profile, profile)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile given is not part of profile");
+        }
+
+        // Delete
         this.playlistRepository.deleteById(playlistId);
+    }
+
+    public void removePlaylistsByInitiatorAndTarget(Profile initiator, Profile target) {
+        playlistRepository.deleteAllByInitiatorAndTarget(initiator, target);
     }
 
     public Playlist setPlaylistPicture(String playlistId, MultipartFile picture) throws IOException {

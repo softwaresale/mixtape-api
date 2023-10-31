@@ -65,4 +65,10 @@ public class PlaylistController extends AbstractRestController {
         Profile profile = resolveProfileOr404(profileId);
         playlistService.denyPlaylist(profile, playlistId);
     }
+
+    @DeleteMapping("/{playlistId}")
+    public void deletePlaylist(@PathVariable String profileId, @PathVariable String playlistId) {
+        Profile profile = resolveProfileOr404(profileId);
+        playlistService.removePlaylist(profile, playlistId);
+    }
 }

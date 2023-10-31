@@ -52,15 +52,13 @@ public class MixtapeService {
     }
 
     public List<Mixtape> findAllMixtapesForPlaylistByTitle(Profile profile, String playlistId, String title) throws IOException {
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+        // Verify profile has playlist
+        playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
         // Returns mixtapes that have same title as given title
-        return playlist
-                .getMixtapes()
-                .stream()
-                .filter(mixtape -> mixtape.getName().equals(title))
-                .collect(Collectors.toList());
+        return trackService.inflateMixtapes(mixtapeRepository
+                .findAllByPlaylistIDAndName(playlistId, title));
     }
 
     public List<Mixtape> findAllMixtapesForPlaylistBySongName(Profile profile, String playlistId, String songName) throws IOException {
@@ -72,10 +70,10 @@ public class MixtapeService {
                 .getMixtapes()
                 .stream()
                 .filter(mixtape -> mixtape
-                                .getSongs()
-                                .stream()
-                                .map(TrackInfo::getName)
-                                .anyMatch(songName::equals))
+                        .getSongs()
+                        .stream()
+                        .map(TrackInfo::getName)
+                        .anyMatch(songName::equals))
                 .collect(Collectors.toList());
     }
 
@@ -139,7 +137,7 @@ public class MixtapeService {
     public void removeMixtape(Profile profile, String playlistId, String mixtapeId) throws IOException {
         // Check playlist exists in profile
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile does not own given playlist"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile does not own given playlist"));
 
         // Check mixtape exists
         Mixtape mixtape = findMixtape(mixtapeId)

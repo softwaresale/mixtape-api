@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -43,8 +42,7 @@ public class FriendshipController extends AbstractRestController {
     public Friendship createFriendship(@PathVariable String profileId, @RequestBody String requestedTargetID) {
         Profile initiator = resolveProfileOr404(profileId);
         Profile requestedTarget = resolveProfileOr404(requestedTargetID);
-        Friendship newFriendship = new Friendship(null, initiator, null);
-        return friendshipService.createFriendship(initiator, newFriendship, requestedTarget);
+        return friendshipService.createFriendship(initiator, requestedTarget);
     }
 
     @PutMapping("/{friendshipId}/accept")
@@ -60,7 +58,8 @@ public class FriendshipController extends AbstractRestController {
     }
 
     @DeleteMapping("/{friendshipId}")
-    public void deleteFriendship(@PathVariable String profileId, @PathVariable String friendshipId) throws IOException {
-        friendshipService.removeFriendship(friendshipId);
+    public void deleteFriendship(@PathVariable String profileId, @PathVariable String friendshipId) {
+        Profile profile = resolveProfileOr404(profileId);
+        friendshipService.removeFriendship(profile, friendshipId);
     }
 }
