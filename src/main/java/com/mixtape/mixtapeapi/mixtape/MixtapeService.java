@@ -152,6 +152,10 @@ public class MixtapeService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape is not part of given playlist");
         }
 
+        // Remove the other side of the relationship
+        playlist.getMixtapes().remove(mixtape);
+        playlistService.savePlaylist(playlist);
+
         // Delete mixtape
         mixtapeRepository.delete(mixtape);
     }
