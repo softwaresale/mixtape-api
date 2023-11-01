@@ -50,6 +50,7 @@ public class MixtapeServiceTest {
         Mixtape mockMixtape = new Mixtape();
 
         when(mockTrackService.getMixtapeDuration(mockMixtape)).thenReturn(Duration.ofMillis(4000));
+        when(mockTrackService.inflateMixtape(mockMixtape)).thenReturn(mockMixtape);
         when(mockPlaylistService.findPlaylist(mockPlaylistId)).thenReturn(Optional.of(mockPlaylist));
         when(mockMixtapeRepository.save(mockMixtape)).thenReturn(mockMixtape);
 
@@ -62,6 +63,7 @@ public class MixtapeServiceTest {
 
         verify(mockPlaylistService).findPlaylist(mockPlaylistId);
         verify(mockTrackService).getMixtapeDuration(mockMixtape);
+        verify(mockTrackService).inflateMixtape(mockMixtape);
         verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
     }

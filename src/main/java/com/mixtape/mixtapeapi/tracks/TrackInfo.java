@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.tracks;
 
 import java.util.List;
+import java.util.Objects;
 
 public class TrackInfo {
     private String id;
@@ -58,5 +59,30 @@ public class TrackInfo {
 
     public void setAlbumImageURL(String albumImageURL) {
         this.albumImageURL = albumImageURL;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TrackInfo trackInfo = (TrackInfo) o;
+        return Objects.equals(id, trackInfo.id) && Objects.equals(name, trackInfo.name) && Objects.equals(artistNames, trackInfo.artistNames) && Objects.equals(albumName, trackInfo.albumName) && Objects.equals(albumImageURL, trackInfo.albumImageURL);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, artistNames, albumName, albumImageURL);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("TrackInfo{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", name='").append(name).append('\'');
+        sb.append(", artistNames=").append(artistNames);
+        sb.append(", albumName='").append(albumName).append('\'');
+        sb.append(", albumImageURL='").append(albumImageURL).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }

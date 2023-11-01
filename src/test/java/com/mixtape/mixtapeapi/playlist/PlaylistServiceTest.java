@@ -45,7 +45,7 @@ public class PlaylistServiceTest {
 
     @Test
     void findPlaylistForProfile_returnsEmpty_whenQueryFindsNothing() throws IOException {
-        when(mockRepository.findByIdAndInitiatorOrTarget(any(), any(), any())).thenReturn(Optional.empty());
+        when(mockRepository.findByIdAndInitiatorOrIdAndTarget(any(), any(), any(), any())).thenReturn(Optional.empty());
 
         Optional<Playlist> result = playlistService.findPlaylistForProfile(new Profile(), "");
 
@@ -62,7 +62,7 @@ public class PlaylistServiceTest {
         sampleMixtape.setSongIDs(List.of("song-id-1"));
         mockPlaylist.setMixtapes(List.of(sampleMixtape));
 
-        when(mockRepository.findByIdAndInitiatorOrTarget(any(), any(), any())).thenReturn(Optional.of(mockPlaylist));
+        when(mockRepository.findByIdAndInitiatorOrIdAndTarget(any(), any(), any(), any())).thenReturn(Optional.of(mockPlaylist));
         when(mockTrackService.inflatePlaylist(mockPlaylist)).thenReturn(mockPlaylist);
 
         Optional<Playlist> result = playlistService.findPlaylistForProfile(new Profile(), "");
@@ -74,7 +74,7 @@ public class PlaylistServiceTest {
     @Test
     void findPlaylistForProfile_throwsInternalServerError_whenFails() throws IOException {
         Playlist mockPlaylist = new Playlist();
-        when(mockRepository.findByIdAndInitiatorOrTarget(any(), any(), any())).thenReturn(Optional.of(mockPlaylist));
+        when(mockRepository.findByIdAndInitiatorOrIdAndTarget(any(), any(), any(), any())).thenReturn(Optional.of(mockPlaylist));
         when(mockTrackService.inflatePlaylist(mockPlaylist)).thenThrow(new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR));
 
         var result = assertThatThrownBy(() -> {

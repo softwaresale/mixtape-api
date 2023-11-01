@@ -1,62 +1,67 @@
 package com.mixtape.mixtapeapi.tracks;
 
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
-import org.apache.hc.core5.http.ParseException;
+import com.mixtape.mixtapeapi.playlist.Playlist;
+import com.mixtape.mixtapeapi.spotify.SpotifyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.specification.Track;
-import se.michaelthelin.spotify.requests.data.tracks.GetSeveralTracksRequest;
 
-import java.io.IOException;
-import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class TrackServiceTest {
 
     @Mock
-    SpotifyApi mockSpotifyApi;
+    SpotifyService mockSpotifyService;
 
     TrackService trackService;
 
     @BeforeEach
     void setUp() {
-        trackService = new TrackService(mockSpotifyApi);
+        trackService = new TrackService(mockSpotifyService);
     }
 
     @Test
-    void getMixtapeDuration_getFullDuration_whenSuccess() throws IOException, ParseException, SpotifyWebApiException {
-        Track[] tracks = {
-                new Track.Builder()
-                    .setDurationMs(100)
-                    .build(),
-                new Track.Builder()
-                        .setDurationMs(200)
-                        .build()
-        };
+    void getTrackInfoForMixtape_works_whenCalledWithMixtape() {
+        Mixtape mixtape = new Mixtape();
+        mixtape.setSongIDs(List.of("song-01", "song-02"));
 
-        List<String> songIds = List.of("song-1", "song-2");
-        String[] songIdsArray = songIds.toArray(String[]::new);
-        GetSeveralTracksRequest mockRequest = mock(GetSeveralTracksRequest.class);
-        when(mockRequest.execute()).thenReturn(tracks);
-        GetSeveralTracksRequest.Builder mockBuilder = mock(GetSeveralTracksRequest.Builder.class);
-        when(mockBuilder.build()).thenReturn(mockRequest);
-        when(mockSpotifyApi.getSeveralTracks(songIdsArray)).thenReturn(mockBuilder);
-        Mixtape mockMixtape = new Mixtape();
-        mockMixtape.setSongIDs(new ArrayList<>(songIds));
+        trackService.getTrackInfoForMixtape(mixtape);
 
-        Duration duration = trackService.getMixtapeDuration(mockMixtape);
-        assertThat(duration).hasMillis(300);
-        verify(mockSpotifyApi).getSeveralTracks("song-1", "song-2");
+        verify(mockSpotifyService).getTrackInfos("song-01", "song-02");
+    }
+
+    @Test
+    void getTrackInfoForMixtape_doesNothing_whenNoSongs() {
+        Mixtape mixtape = new Mixtape();
+
+        trackService.getTrackInfoForMixtape(mixtape);
+
+        verify(mockSpotifyService, never()).getTrackInfos();
+    }
+
+    @Test
+    void inflatePlaylist_inflatesAllMixtapes_andSetsThem() {
+        List<Mixtape> mixtapes = List.of(
+                new Mixtape("1", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-1", "song-2")), new ArrayList<>()),
+                new Mixtape("2", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-3", "song-4")), new ArrayList<>()),
+                new Mixtape("3", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-5", "song-6")), new ArrayList<>())
+        );
+        Playlist mockPlaylist = new Playlist();
+        mockPlaylist.setMixtapes(mixtapes);
+
+        trackService.inflatePlaylist(mockPlaylist);
+
+        verify(mockSpotifyService).getTrackInfos("song-1", "song-2");
+        verify(mockSpotifyService).getTrackInfos("song-3", "song-4");
+        verify(mockSpotifyService).getTrackInfos("song-5", "song-6");
     }
 }

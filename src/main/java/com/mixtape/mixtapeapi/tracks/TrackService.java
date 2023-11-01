@@ -2,6 +2,7 @@ package com.mixtape.mixtapeapi.tracks;
 
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
+import com.mixtape.mixtapeapi.spotify.SpotifyService;
 import org.apache.hc.core5.http.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,28 +27,22 @@ public class TrackService {
 
     private static final Logger logger = LoggerFactory.getLogger(TrackService.class);
 
-    private final SpotifyApi spotifyApi;
+    private final SpotifyService spotifyService;
 
-    public TrackService(SpotifyApi spotifyApi) {
-        this.spotifyApi = spotifyApi;
+    public TrackService(SpotifyService spotifyService) {
+        this.spotifyService = spotifyService;
     }
 
-    public List<TrackInfo> getTrackInfoForMixtape(Mixtape tape) throws IOException {
-        try {
-            Track[] spotifyTracks = spotifyApi.getSeveralTracks(tape.getSongIDs().toArray(String[]::new))
-                    .build()
-                    .execute();
-
-            return Arrays.stream(spotifyTracks)
-                    .map(this::convertSpotifyTrack)
-                    .toList();
-        } catch (ParseException | SpotifyWebApiException spotifyExe) {
-            logger.error("Failed to get track info for mixtape", spotifyExe);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
+    public List<TrackInfo> getTrackInfoForMixtape(Mixtape tape) {
+        // save the call on empty, but this shouldn't really happen ever...
+        if (tape.getSongIDs().isEmpty()) {
+            return List.of();
         }
+
+        return spotifyService.getTrackInfos(tape.getSongIDs().toArray(String[]::new));
     }
 
-    public Playlist inflatePlaylist(Playlist playlist) throws IOException {
+    public Playlist inflatePlaylist(Playlist playlist) {
         // Grab mixtapes
         List<Mixtape> mixtapes = playlist.getMixtapes();
 
@@ -59,13 +54,13 @@ public class TrackService {
         return playlist;
     }
 
-    public Mixtape inflateMixtape(Mixtape mixtape) throws IOException {
+    public Mixtape inflateMixtape(Mixtape mixtape) {
         List<TrackInfo> trackInfos = getTrackInfoForMixtape(mixtape);
         mixtape.setSongs(trackInfos);
         return mixtape;
     }
 
-    public List<Mixtape> inflateMixtapes(List<Mixtape> mixtapes) throws IOException {
+    public List<Mixtape> inflateMixtapes(List<Mixtape> mixtapes) {
         // Fill mixtape
         for (Mixtape mixtape : mixtapes) {
             List<TrackInfo> trackInfos = getTrackInfoForMixtape(mixtape);
@@ -76,34 +71,7 @@ public class TrackService {
         return mixtapes;
     }
 
-    public Duration getMixtapeDuration(Mixtape mixtape) throws IOException {
-        try {
-            Track[] spotifyTracks = spotifyApi.getSeveralTracks(mixtape.getSongIDs().toArray(String[]::new))
-                    .build()
-                    .execute();
-
-            long totalDurationMs = Arrays.stream(spotifyTracks)
-                    .mapToLong(Track::getDurationMs)
-                    .sum();
-
-            return Duration.ofMillis(totalDurationMs);
-        } catch (ParseException | SpotifyWebApiException spotifyExe) {
-            logger.error("Failed to get mixtape duration", spotifyExe);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
-        }
-    }
-
-    private TrackInfo convertSpotifyTrack(Track track) {
-        String albumName = track.getAlbum().getName();
-        List<String> artistNames = Arrays.stream(track.getArtists())
-                .map(ArtistSimplified::getName)
-                .collect(Collectors.toList());
-
-        String albumURL = Arrays.stream(track.getAlbum().getImages())
-                .max(Comparator.comparingInt(Image::getHeight))
-                .map(Image::getUrl)
-                .orElse("");
-
-        return new TrackInfo(track.getId(), track.getName(), artistNames, albumName, albumURL);
+    public Duration getMixtapeDuration(Mixtape mixtape) {
+        return spotifyService.getTracksDuration(mixtape.getSongIDs().toArray(String[]::new));
     }
 }
