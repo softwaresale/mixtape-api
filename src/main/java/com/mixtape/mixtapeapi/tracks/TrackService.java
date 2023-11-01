@@ -54,6 +54,12 @@ public class TrackService {
         return playlist;
     }
 
+    public Mixtape inflateMixtape(Mixtape mixtape) throws IOException {
+        List<TrackInfo> trackInfos = getTrackInfoForMixtape(mixtape);
+        mixtape.setSongs(trackInfos);
+        return mixtape;
+    }
+
     public List<Mixtape> inflateMixtapes(List<Mixtape> mixtapes) throws IOException {
         // Fill mixtape
         for (Mixtape mixtape : mixtapes) {

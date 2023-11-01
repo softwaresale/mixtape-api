@@ -133,6 +133,8 @@ public class MixtapeService {
         // Create notification
         notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget());
 
+        // inflate
+        savedMixtape = trackService.inflateMixtape(savedMixtape);
         return savedMixtape;
     }
 
