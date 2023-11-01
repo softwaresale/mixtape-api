@@ -3,6 +3,7 @@ package com.mixtape.mixtapeapi.friendship;
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,6 +51,7 @@ public class FriendshipService {
         return friendship;
     }
 
+    @Transactional
     public Friendship acceptFriendship(Profile target, String friendshipId) {
         // Grab friendship
         Friendship friendship = findFriendship(friendshipId)
@@ -65,6 +67,7 @@ public class FriendshipService {
         return friendshipRepository.save(friendship);
     }
 
+    @Transactional
     public void denyFriendship(Profile target, String friendshipId) {
         // Grab friendship
         Friendship friendship = findFriendship(friendshipId)

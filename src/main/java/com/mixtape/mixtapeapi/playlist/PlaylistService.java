@@ -3,6 +3,7 @@ package com.mixtape.mixtapeapi.playlist;
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,7 +32,7 @@ public class PlaylistService {
     }
 
     public Optional<Playlist> findPlaylistForProfile(Profile profile, String playlistId) throws IOException {
-        Optional<Playlist> playlistOpt = playlistRepository.findByIdAndInitiatorOrTarget(playlistId, profile, profile);
+        Optional<Playlist> playlistOpt = playlistRepository.findByIdAndInitiatorOrIdAndTarget(playlistId, profile, playlistId, profile);
         if (playlistOpt.isEmpty()) {
             return playlistOpt;
         }
@@ -41,7 +42,7 @@ public class PlaylistService {
     }
 
     public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
-        List<Playlist> playlists = playlistRepository.findByInitiatorOrTarget(profile, profile);
+        List<Playlist> playlists = playlistRepository.findByInitiatorAndTargetNotNullOrTarget(profile, profile);
         for (var playlist : playlists) {
             trackService.inflatePlaylist(playlist);
         }
@@ -64,6 +65,7 @@ public class PlaylistService {
         return playlist;
     }
 
+    @Transactional
     public Playlist acceptPlaylist(Profile target, String playlistId) {
         // Grab playlist
         Playlist playlist = findPlaylist(playlistId)
@@ -79,6 +81,7 @@ public class PlaylistService {
         return savePlaylist(playlist);
     }
 
+    @Transactional
     public void denyPlaylist(Profile target, String playlistId) {
         // Grab playlist
         Playlist playlist = findPlaylist(playlistId)
@@ -94,7 +97,7 @@ public class PlaylistService {
 
     public void removePlaylist(Profile profile, String playlistId) {
         // Verify profile owns playlist
-        if (!playlistRepository.existsByIdAndInitiatorOrTarget(playlistId, profile, profile)) {
+        if (!playlistRepository.existsByIdAndInitiatorOrIdAndTarget(playlistId, profile, playlistId, profile)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile given is not part of profile");
         }
 

@@ -12,13 +12,13 @@ import java.util.Optional;
 @NonNullApi
 public interface PlaylistRepository extends JpaRepository<Playlist, String> {
     boolean existsById(String id);
-    boolean existsByIdAndInitiatorOrTarget(String id, Profile initiator, Profile target);
+    boolean existsByIdAndInitiatorOrIdAndTarget(String id1, Profile initiator, String id2, Profile target);
 
     Optional<Playlist> findById(String id);
 
-    Optional<Playlist> findByIdAndInitiatorOrTarget(String id, Profile initiator, Profile target);
+    Optional<Playlist> findByIdAndInitiatorOrIdAndTarget(String id1, Profile initiator, String id2, Profile target);
 
-    List<Playlist> findByInitiatorOrTarget(Profile initiator, Profile target);
+    List<Playlist> findByInitiatorAndTargetNotNullOrTarget(Profile initiator, Profile target);
 
     void deleteAllByInitiatorAndTarget(Profile initiator, Profile target);
 }
