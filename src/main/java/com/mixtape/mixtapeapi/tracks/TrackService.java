@@ -3,6 +3,8 @@ package com.mixtape.mixtapeapi.tracks;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import org.apache.hc.core5.http.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 @Service
 public class TrackService {
 
+    private static final Logger logger = LoggerFactory.getLogger(TrackService.class);
+
     private final SpotifyApi spotifyApi;
 
     public TrackService(SpotifyApi spotifyApi) {
@@ -38,7 +42,8 @@ public class TrackService {
                     .map(this::convertSpotifyTrack)
                     .toList();
         } catch (ParseException | SpotifyWebApiException spotifyExe) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request");
+            logger.error("Failed to get track info for mixtape", spotifyExe);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
         }
     }
 
@@ -83,7 +88,8 @@ public class TrackService {
 
             return Duration.ofMillis(totalDurationMs);
         } catch (ParseException | SpotifyWebApiException spotifyExe) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request");
+            logger.error("Failed to get mixtape duration", spotifyExe);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
         }
     }
 

@@ -174,7 +174,6 @@ public class MixtapeService {
                     Reaction newReaction = new Reaction(null, reactingUser, reactionType, mixtape);
                     return reactionRepository.save(newReaction);
                 });
-        // TODO I don't like repeating this one... maybe there's something more efficient
         mixtape.addReaction(upsertedReaction);
         return mixtapeRepository.save(mixtape);
     }
