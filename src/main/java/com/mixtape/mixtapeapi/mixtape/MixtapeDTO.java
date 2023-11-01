@@ -13,5 +13,29 @@ public class MixtapeDTO {
             this.description = description;
             this.songIDs = songIDs;
         }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public List<String> getSongIDs() {
+            return songIDs;
+        }
+
+        public void setSongIDs(List<String> songIDs) {
+            this.songIDs = songIDs;
+        }
     }
 }
