@@ -8,10 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,5 +58,30 @@ public class FriendshipServiceTest {
         List<Profile> friendProfiles = friendshipService.findFriendsForProfile(mockProfile);
 
         assertThat(friendProfiles).containsExactly(mockProfiles.get(1), mockProfiles.get(2), mockProfiles.get(3));
+    }
+
+    @Test
+    void createFriendship_createsFriendshipInvitation_whenGoodInput() {
+
+        when(mockRepository.save(any())).then((Answer<Friendship>) answer -> (Friendship) answer.getArguments()[0]);
+
+        Friendship newFriendship = friendshipService.createFriendship(mockProfiles.get(0), mockProfiles.get(1));
+
+        assertThat(newFriendship.getInitiator()).isEqualTo(mockProfiles.get(0));
+        assertThat(newFriendship.getTarget()).isNull();
+        verify(mockNotificationService).createNotificationFromFriendship(newFriendship, mockProfiles.get(1));
+    }
+
+    @Test
+    void removeFriendship_deletesTheFriendshipAndRemovesPlaylists_whenFound() {
+        Friendship friendship = new Friendship(null, mockProfiles.get(0), mockProfiles.get(1));
+
+        when(mockRepository.findByIdAndInitiatorOrTarget(friendship.getId(), mockProfiles.get(0), mockProfiles.get(0)))
+                .thenReturn(Optional.of(friendship));
+
+        friendshipService.removeFriendship(mockProfiles.get(0), friendship.getId());
+
+        verify(mockPlaylistService).removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
+        verify(mockRepository).delete(friendship);
     }
 }
