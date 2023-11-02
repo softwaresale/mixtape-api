@@ -42,7 +42,7 @@ public class FriendshipService {
 
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
         // Create friendship
-        Friendship friendship = new Friendship(null, initiator, requestedTarget);
+        Friendship friendship = new Friendship(null, initiator, null);
         friendship = friendshipRepository.save(friendship);
 
         // Create notification for accepting or denying playlist
