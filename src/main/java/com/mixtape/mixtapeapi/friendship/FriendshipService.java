@@ -29,7 +29,7 @@ public class FriendshipService {
     }
 
     public List<Profile> findFriendsForProfile(Profile profile) {
-        return friendshipRepository.findAllByInitiatorOrTarget(profile, profile).stream()
+        return friendshipRepository.findAllByInitiatorAndTargetNotNullOrTarget(profile, profile).stream()
                 .map(friendship -> {
                     if (friendship.getTarget().getId().equals(profile.getId())) {
                         return friendship.getInitiator();
