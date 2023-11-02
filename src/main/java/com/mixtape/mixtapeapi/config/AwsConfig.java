@@ -3,6 +3,7 @@ package com.mixtape.mixtapeapi.config;
 import com.mixtape.mixtapeapi.playlist.PlaylistPicUrlFormatter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -24,8 +25,16 @@ public class AwsConfig {
                 .build();
     }
 
+    @Profile("prod")
     @Bean
     public AwsCredentialsProvider awsCredentialsProvider() {
+        return InstanceProfileCredentialsProvider.builder()
+                .build();
+    }
+
+    @Profile("!prod")
+    @Bean
+    public AwsCredentialsProvider localAwsCredentialsProvider() {
         return EnvironmentVariableCredentialsProvider.create();
     }
 
