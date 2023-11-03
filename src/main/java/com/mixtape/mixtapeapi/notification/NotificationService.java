@@ -49,12 +49,12 @@ public class NotificationService {
 
     }
 
-    public void createNotificationFromMixtape(Mixtape mixtape, Profile target, String playlistName) {
+    public void createNotificationFromMixtape(Mixtape mixtape, Profile target, Playlist playlist) {
         // Create contents for notification
-        String contents = String.format("%s added the mixtape %s to your shared playlist %s", mixtape.getCreator().getDisplayName(), mixtape.getName(), playlistName);
+        String contents = String.format("%s added the mixtape %s to your shared playlist %s", mixtape.getCreator().getDisplayName(), mixtape.getName(), playlist.getName());
 
         // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.MIXTAPE, mixtape.getId());
+        Notification notification = new Notification("", target, contents, NotificationType.MIXTAPE, playlist.getId());
 
         // Save to repository
         notificationRepository.save(notification);

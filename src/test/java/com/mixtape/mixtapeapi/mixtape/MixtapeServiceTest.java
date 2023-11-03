@@ -44,10 +44,15 @@ public class MixtapeServiceTest {
     @Test
     void createMixtapeForPlaylist_shouldAddMixtapeToPlaylist_whenSuccessful() throws IOException {
         String mockPlaylistId = "playlist-id";
+        Profile mockProfile = new Profile();
+        mockProfile.setId("id1");
+        Profile mockTarget = new Profile();
+        mockTarget.setId("id2");
+        Mixtape mockMixtape = new Mixtape();
         Playlist mockPlaylist = new Playlist();
         mockPlaylist.setId(mockPlaylistId);
-        Profile mockProfile = new Profile();
-        Mixtape mockMixtape = new Mixtape();
+        mockPlaylist.setInitiator(mockProfile);
+        mockPlaylist.setTarget(mockTarget);
 
         when(mockTrackService.getMixtapeDuration(mockMixtape)).thenReturn(Duration.ofMillis(4000));
         when(mockTrackService.inflateMixtape(mockMixtape)).thenReturn(mockMixtape);
@@ -66,6 +71,7 @@ public class MixtapeServiceTest {
         verify(mockTrackService).inflateMixtape(mockMixtape);
         verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
+        verify(mockNotificationService).createNotificationFromMixtape(mockMixtape, mockTarget, mockPlaylist);
     }
 
     @Test

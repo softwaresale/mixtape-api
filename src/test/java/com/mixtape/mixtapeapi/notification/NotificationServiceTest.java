@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.parameters.P;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.assertArg;
@@ -69,14 +70,17 @@ public class NotificationServiceTest {
         mockMixtape.setId("m1");
         mockMixtape.setCreator(initiator);
         mockMixtape.setName("mixtape");
+        Playlist playlist = new Playlist();
+        playlist.setId("pl1");
+        playlist.setName("playlist");
 
-        notificationService.createNotificationFromMixtape(mockMixtape, target, "playlist");
+        notificationService.createNotificationFromMixtape(mockMixtape, target, playlist);
 
         verify(mockRepository).save(assertArg(notification -> {
             assertThat(notification.getContents()).isEqualTo("user-1 added the mixtape mixtape to your shared playlist playlist");
             assertThat(notification.getTarget()).isEqualTo(target);
             assertThat(notification.getNotificationType()).isEqualTo(NotificationType.MIXTAPE);
-            assertThat(notification.getExternalId()).isEqualTo("m1");
+            assertThat(notification.getExternalId()).isEqualTo("pl1");
         }));
     }
 }

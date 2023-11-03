@@ -130,8 +130,11 @@ public class MixtapeService {
         // Save new playlist
         playlistService.savePlaylist(playlist);
 
+        Profile notificationTarget = playlist.getInitiator().equals(creator)
+                ? playlist.getTarget() : playlist.getInitiator();
+
         // Create notification
-        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget(), playlist.getName());
+        notificationService.createNotificationFromMixtape(savedMixtape, notificationTarget, playlist);
 
         // inflate
         savedMixtape = trackService.inflateMixtape(savedMixtape);

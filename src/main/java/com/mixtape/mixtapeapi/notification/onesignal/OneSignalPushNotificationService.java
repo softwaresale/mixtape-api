@@ -32,6 +32,7 @@ public class OneSignalPushNotificationService implements PushNotificationService
         // Fill out fields
         oneSignalNotification.setAppId(notificationsAppId);
         oneSignalNotification.setIsAndroid(true);
+        oneSignalNotification.setIncludeExternalUserIds(List.of(notification.getTarget().getId()));
 
         // Fill out content
         StringMap contentStringMap = new StringMap();
