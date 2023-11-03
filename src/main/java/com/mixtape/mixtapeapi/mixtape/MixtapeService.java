@@ -131,7 +131,7 @@ public class MixtapeService {
         playlistService.savePlaylist(playlist);
 
         // Create notification
-        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget(), playlist.getName());
+        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget(), playlist.getName(), creator.getDisplayName());
 
         // inflate
         savedMixtape = trackService.inflateMixtape(savedMixtape);
