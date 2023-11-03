@@ -46,6 +46,11 @@ public class FriendshipService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship between these two already exists");
         }
 
+        // Check if already pending
+        if (notificationService.notificationExistsByTargetAndContents(requestedTarget, String.format("%s wants to be friends with you", initiator.getDisplayName()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship request has been sent out already for these two");
+        }
+
         // Create friendship
         Friendship friendship = new Friendship(null, initiator, null);
         friendship = friendshipRepository.save(friendship);

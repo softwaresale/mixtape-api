@@ -18,6 +18,10 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
+    public boolean notificationExistsByTargetAndContents(Profile target, String contents) {
+        return notificationRepository.existsByTargetAndContents(target, contents);
+    }
+
     public List<Notification> findAllNotificationsForProfile(Profile profile) {
         return notificationRepository.findAllByTarget(profile);
     }
