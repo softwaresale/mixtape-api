@@ -45,6 +45,7 @@ public class FriendshipService {
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship between these two already exists");
         }
+
         // Create friendship
         Friendship friendship = new Friendship(null, initiator, null);
         friendship = friendshipRepository.save(friendship);
