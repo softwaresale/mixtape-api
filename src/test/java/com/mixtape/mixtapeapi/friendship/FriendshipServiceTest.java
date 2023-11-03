@@ -53,7 +53,7 @@ public class FriendshipServiceTest {
                 new Friendship("6", mockProfiles.get(0), mockProfiles.get(3))
         );
         Profile mockProfile = mockProfiles.get(0);
-        when(mockRepository.findAllByInitiatorOrTarget(mockProfile, mockProfile)).thenReturn(friendships);
+        when(mockRepository.findAllByInitiatorAndTargetNotNullOrTarget(mockProfile, mockProfile)).thenReturn(friendships);
 
         List<Profile> friendProfiles = friendshipService.findFriendsForProfile(mockProfile);
 
