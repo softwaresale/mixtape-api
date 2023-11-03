@@ -90,6 +90,7 @@ public class FriendshipService {
         friendshipRepository.delete(friendship);
     }
 
+    @Transactional
     public void removeFriendship(Profile profile, String friendshipId) {
         // Verify profile and friendship matches
         Friendship friendship = friendshipRepository.findByIdAndInitiatorOrTarget(friendshipId, profile, profile)
@@ -98,6 +99,7 @@ public class FriendshipService {
         cascadeDeleteFriendship(friendship);
     }
 
+    @Transactional
     public void removeFriendshipWithFriend(Profile deleter, Profile deletee) {
         Friendship friendship = friendshipRepository
                 .findByTargetAndInitiatorOrInitiatorAndTarget(deleter, deletee, deleter, deletee)
