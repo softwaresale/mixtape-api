@@ -29,7 +29,7 @@ public class FriendshipService {
     }
 
     public List<Profile> findFriendsForProfile(Profile profile) {
-        return friendshipRepository.findAllByInitiatorOrTarget(profile, profile).stream()
+        return friendshipRepository.findAllByInitiatorAndTargetNotNullOrTarget(profile, profile).stream()
                 .map(friendship -> {
                     if (friendship.getTarget().getId().equals(profile.getId())) {
                         return friendship.getInitiator();
@@ -41,6 +41,11 @@ public class FriendshipService {
     }
 
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
+        // Check if already exists
+        if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship between these two already exists");
+        }
+
         // Create friendship
         Friendship friendship = new Friendship(null, initiator, null);
         friendship = friendshipRepository.save(friendship);

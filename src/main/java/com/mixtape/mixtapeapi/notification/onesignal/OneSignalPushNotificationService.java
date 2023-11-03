@@ -4,6 +4,7 @@ import com.mixtape.mixtapeapi.notification.Notification;
 import com.mixtape.mixtapeapi.notification.PushNotificationService;
 import com.onesignal.client.ApiException;
 import com.onesignal.client.api.DefaultApi;
+import com.onesignal.client.model.CreateNotificationSuccessResponse;
 import com.onesignal.client.model.StringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public class OneSignalPushNotificationService implements PushNotificationService
     }
 
     @Override
-    public void sendPushForNotification(Notification notification) throws ApiException {
+    public void sendPushForNotification(Notification notification) {
         DefaultApi api = defaultApiFactory.createDefaultAPI(notification.getTarget().getId());
 
         var oneSignalNotification = new com.onesignal.client.model.Notification();
@@ -39,7 +40,12 @@ public class OneSignalPushNotificationService implements PushNotificationService
         oneSignalNotification.setContents(contentStringMap);
 
         // Send notification
-        api.createNotification(oneSignalNotification);
-        logger.info("Dispatching one signal push notification object: {}", oneSignalNotification);
+        try {
+            logger.info("Dispatching one signal push notification object: {}...", oneSignalNotification);
+            CreateNotificationSuccessResponse response = api.createNotification(oneSignalNotification);
+            logger.info("Got result: {}", response);
+        } catch (ApiException exe) {
+            logger.error("Error while creating notification", exe);
+        }
     }
 }

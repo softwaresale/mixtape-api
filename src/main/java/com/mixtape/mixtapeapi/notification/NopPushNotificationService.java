@@ -8,7 +8,7 @@ public class NopPushNotificationService implements PushNotificationService {
     private static final Logger logger = LoggerFactory.getLogger(NopPushNotificationService.class);
 
     @Override
-    public void sendPushForNotification(Notification notification) throws ApiException {
+    public void sendPushForNotification(Notification notification) {
         logger.info("No push notification is sent for {}", notification);
     }
 }

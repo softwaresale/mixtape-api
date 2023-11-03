@@ -34,7 +34,7 @@ public class MixtapeService {
         this.notificationService = notificationService;
     }
 
-    public Optional<Mixtape> findMixtape(String mixtapeId) throws IOException {
+    public Optional<Mixtape> findMixtape(String mixtapeId) {
         Optional<Mixtape> mixtapeOpt = mixtapeRepository.findById(mixtapeId);
         if (mixtapeOpt.isEmpty()) {
             return mixtapeOpt;
@@ -112,7 +112,7 @@ public class MixtapeService {
                 .collect(Collectors.toList());
     }
 
-    public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) throws IOException {
+    public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) {
         // Find the playlist
         Playlist playlist = playlistService.findPlaylist(playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Containing playlist not found"));
@@ -131,7 +131,7 @@ public class MixtapeService {
         playlistService.savePlaylist(playlist);
 
         // Create notification
-        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget());
+        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget(), playlist.getName());
 
         // inflate
         savedMixtape = trackService.inflateMixtape(savedMixtape);
@@ -160,7 +160,7 @@ public class MixtapeService {
         mixtapeRepository.delete(mixtape);
     }
 
-    public Mixtape createOrUpdateReactionForMixtape(String mixtapeId, Profile reactingUser, ReactionType reactionType) throws IOException {
+    public Mixtape createOrUpdateReactionForMixtape(String mixtapeId, Profile reactingUser, ReactionType reactionType) {
         Mixtape mixtape = findMixtape(mixtapeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
 
@@ -182,7 +182,7 @@ public class MixtapeService {
         return mixtapeRepository.save(mixtape);
     }
 
-    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) throws IOException {
+    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) {
         return findMixtape(mixtapeId)
                 .map(Mixtape::getReactions)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));

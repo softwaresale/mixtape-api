@@ -24,7 +24,7 @@ public class NotificationService {
 
     public void createNotificationFromPlaylist(Playlist playlist, Profile target) {
         // Create contents for notification
-        String contents = "TODO";
+        String contents = String.format("%s wants to invite you to their playlist %s", playlist.getInitiator().getDisplayName(), playlist.getName());
 
         // Create notification
         Notification notification = new Notification("", target, contents, NotificationType.PLAYLIST, playlist.getId());
@@ -35,7 +35,7 @@ public class NotificationService {
 
     public void createNotificationFromFriendship(Friendship friendship, Profile target) {
         // Create contents for notification
-        String contents = "TODO";
+        String contents = String.format("%s wants to be friends with you", friendship.getInitiator().getDisplayName());
 
         // Create notification
         Notification notification = new Notification("", target, contents, NotificationType.FRIENDSHIP, friendship.getId());
@@ -45,9 +45,9 @@ public class NotificationService {
 
     }
 
-    public void createNotificationFromMixtape(Mixtape mixtape, Profile target) {
+    public void createNotificationFromMixtape(Mixtape mixtape, Profile target, String playlistName) {
         // Create contents for notification
-        String contents = "TODO";
+        String contents = String.format("%s added the mixtape %s to your shared playlist %s", mixtape.getCreator().getDisplayName(), mixtape.getName(), playlistName);
 
         // Create notification
         Notification notification = new Notification("", target, contents, NotificationType.MIXTAPE, mixtape.getId());
