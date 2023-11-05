@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.mixtape;
 
+import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import jakarta.persistence.*;
@@ -11,11 +12,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Entity
-public class Mixtape {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+public class Mixtape extends BaseEntity {
     private String playlistID;
     private String name;
     private LocalDateTime createdAt;
@@ -53,14 +50,6 @@ public class Mixtape {
         this.creator = creator;
         this.songIDs = songIDs;
         this.reactions = reactions;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getPlaylistID() {
