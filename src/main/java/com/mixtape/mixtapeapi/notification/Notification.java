@@ -1,20 +1,18 @@
 package com.mixtape.mixtapeapi.notification;
 
+import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @EntityListeners(NotificationListener.class)
 @Entity
-public class Notification {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
+public class Notification extends BaseEntity {
+    @ManyToOne
+    @JoinColumn(name="initiator_id")
+    private Profile initiator;
 
     @ManyToOne
     @JoinColumn(name="target_id")
@@ -26,25 +24,37 @@ public class Notification {
 
     private String externalId;
 
-    public Notification(String id, Profile target, String contents, NotificationType notificationType, String externalId) {
+    public Notification(String id, Profile initiator, Profile target, String contents, NotificationType notificationType, String externalId) {
         this.id = id;
+        this.initiator = initiator;
         this.target = target;
         this.contents = contents;
         this.notificationType = notificationType;
         this.externalId = externalId;
     }
 
-
     public Notification() {
-        this("", null, "", NotificationType.PLAYLIST, "");
+        this("", null, null, "", NotificationType.PLAYLIST, "");
     }
 
-    public String getId() {
-        return id;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Notification{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", target=").append(target);
+        sb.append(", contents='").append(contents).append('\'');
+        sb.append(", notificationType=").append(notificationType);
+        sb.append(", externalId='").append(externalId).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public Profile getInitiator() {
+        return initiator;
+    }
+
+    public void setInitiator(Profile initiator) {
+        this.initiator = initiator;
     }
 
     public Profile getTarget() {
@@ -75,19 +85,7 @@ public class Notification {
         return externalId;
     }
 
-    public void setExternalId(String external_id) {
-        this.externalId = external_id;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Notification{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", target=").append(target);
-        sb.append(", contents='").append(contents).append('\'');
-        sb.append(", notificationType=").append(notificationType);
-        sb.append(", externalId='").append(externalId).append('\'');
-        sb.append('}');
-        return sb.toString();
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 }

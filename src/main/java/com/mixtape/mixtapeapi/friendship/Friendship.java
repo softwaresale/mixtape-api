@@ -1,15 +1,11 @@
 package com.mixtape.mixtapeapi.friendship;
 
+import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.persistence.*;
 
 @Entity
-public class Friendship {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
-
+public class Friendship extends BaseEntity {
     @ManyToOne
     @JoinColumn(name="initiator_id")
     private Profile initiator;
@@ -25,14 +21,6 @@ public class Friendship {
         this.id = id;
         this.initiator = initiator;
         this.target = target;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public Profile getInitiator() {
