@@ -38,3 +38,4 @@ out/
 
 ### Postgres ###
 /postgres.sh
+/run-local.sh
