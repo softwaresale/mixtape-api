@@ -12,8 +12,6 @@ import java.util.Optional;
 @NonNullApi
 public interface PlaylistRepository extends JpaRepository<Playlist, String> {
     boolean existsById(String id);
-    boolean existsByIdAndInitiatorOrIdAndTarget(String id1, Profile initiator, String id2, Profile target);
-
     Optional<Playlist> findById(String id);
 
     Optional<Playlist> findByIdAndInitiatorOrIdAndTarget(String id1, Profile initiator, String id2, Profile target);

@@ -22,9 +22,9 @@ public class NotificationController extends AbstractRestController {
     }
 
     @GetMapping
-    public List<Notification> getAllNotificationsForProfile(@PathVariable String profileId) {
+    public List<Notification> getAllNotificationsForTarget(@PathVariable String profileId) {
         Profile profile = resolveProfileOr404(profileId);
 
-        return notificationService.findAllNotificationsForProfile(profile);
+        return notificationService.findAllNotificationsForTarget(profile);
     }
 }
