@@ -2,7 +2,6 @@ package com.mixtape.mixtapeapi.notification.onesignal;
 
 import com.mixtape.mixtapeapi.notification.Notification;
 import com.mixtape.mixtapeapi.notification.PushNotificationService;
-import com.onesignal.client.ApiException;
 import com.onesignal.client.api.DefaultApi;
 import com.onesignal.client.model.CreateNotificationSuccessResponse;
 import com.onesignal.client.model.StringMap;
@@ -25,6 +24,9 @@ public class OneSignalPushNotificationService implements PushNotificationService
 
     @Override
     public void sendPushForNotification(Notification notification) {
+        // Log initial message
+        logger.info("Pre-Notification send for external-id: {}", notification.getTarget().getId());
+
         DefaultApi api = defaultApiFactory.createDefaultAPI(notification.getTarget().getId());
 
         var oneSignalNotification = new com.onesignal.client.model.Notification();
@@ -44,8 +46,8 @@ public class OneSignalPushNotificationService implements PushNotificationService
             logger.info("Dispatching one signal push notification object: {}...", oneSignalNotification);
             CreateNotificationSuccessResponse response = api.createNotification(oneSignalNotification);
             logger.info("Got result: {}", response);
-        } catch (ApiException exe) {
-            logger.error("Error while creating notification", exe);
+        } catch (Exception e) {
+            logger.error("Error while creating and pushing notification", e);
         }
     }
 }

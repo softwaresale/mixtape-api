@@ -41,13 +41,22 @@ public class FriendshipService {
     }
 
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
-        // Check if already exists
-        if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget)) {
+        // Check if same profile
+        if (initiator.equals(requestedTarget)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current profile and requested friend are same");
+        }
+
+        // Check if full friendship already exists
+        if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
+                friendshipRepository.existsByInitiatorAndTarget(requestedTarget, initiator)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship between these two already exists");
         }
 
-        // Check if already pending
-        if (notificationService.notificationExistsByTargetAndContents(requestedTarget, String.format("%s wants to be friends with you", initiator.getDisplayName()))) {
+        // Check if partial friendship already exists
+        if (notificationService.notificationExistsByTargetAndContents(requestedTarget,
+                String.format("%s wants to be friends with you", initiator.getDisplayName())) ||
+                notificationService.notificationExistsByTargetAndContents(initiator,
+                    String.format("%s wants to be friends with you", requestedTarget.getDisplayName()))) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship request has been sent out already for these two");
         }
 
