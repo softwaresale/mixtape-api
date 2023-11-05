@@ -44,14 +44,14 @@ public class NotificationConfig {
         return new OneSignalDefaultApiFactory(defaultNotificationApi());
     }
 
-    @Profile("!prod")
+    @Profile("!nop")
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public PushNotificationService oneSignalNotificationService() {
         return new OneSignalPushNotificationService(oneSignalDefaultApiFactory(), notificationsAppId());
     }
 
-    @Profile("prod")
+    @Profile("nop")
     @Bean
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public PushNotificationService nopPushNotificationService() {

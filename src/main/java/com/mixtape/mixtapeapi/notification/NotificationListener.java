@@ -1,6 +1,5 @@
 package com.mixtape.mixtapeapi.notification;
 
-import com.onesignal.client.ApiException;
 import jakarta.persistence.PostPersist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ public class NotificationListener {
     }
 
     @PostPersist
-    public void postPersist(Notification notification) throws ApiException {
+    public void postPersist(Notification notification) {
         // Create api
         logger.info("New notification created: {}", notification);
         pushNotificationService.sendPushForNotification(notification);
