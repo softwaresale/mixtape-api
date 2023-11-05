@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.notification;
 
+import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 public class NotificationService {
@@ -18,63 +20,66 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public boolean notificationExistsByTargetAndContents(Profile target, String contents) {
-        return notificationRepository.existsByTargetAndContents(target, contents);
+    public boolean notificationExistsByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        return notificationRepository.existsByInitiatorAndTarget(firstProfile, secondProfile) ||
+                notificationRepository.existsByInitiatorAndTarget(secondProfile, firstProfile);
     }
 
-    public List<Notification> findAllNotificationsForProfile(Profile profile) {
-        return notificationRepository.findAllByTarget(profile);
+    public List<Notification> findAllNotificationsForTarget(Profile target) {
+        return notificationRepository.findAllByTarget(target);
     }
 
-    public void createNotificationFromPlaylist(Playlist playlist, Profile target) {
-        // Create contents for notification
-        String contents = String.format("%s wants to invite you to their playlist %s", playlist.getInitiator().getDisplayName(), playlist.getName());
+    public List<Notification> findAllNotificationByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        return Stream.concat(
+                notificationRepository.findAllByInitiatorAndTarget(firstProfile, secondProfile).stream(),
+                notificationRepository.findAllByInitiatorAndTarget(secondProfile, firstProfile).stream()
+        ).toList();
+    }
+
+    public <T extends BaseEntity> void createNotificationFromTrigger(T trigger, Profile initiator, Profile target, String contents) {
+        // Declare type
+        NotificationType type;
+
+        // Initialize type
+        if (trigger instanceof Friendship) {
+            type = NotificationType.FRIENDSHIP;
+        } else if (trigger instanceof Playlist) {
+            type = NotificationType.PLAYLIST;
+        } else if (trigger instanceof Mixtape) {
+            type = NotificationType.MIXTAPE;
+        } else {
+            throw new RuntimeException("Given trigger is not friendship, playlist, or mixtape");
+        }
 
         // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.PLAYLIST, playlist.getId());
+        Notification notification = new Notification(null, initiator, target, contents, type, trigger.getId());
 
         // Save to repository
         notificationRepository.save(notification);
     }
 
-    public void createNotificationFromFriendship(Friendship friendship, Profile target) {
-        // Create contents for notification
-        String contents = String.format("%s wants to be friends with you", friendship.getInitiator().getDisplayName());
-
-        // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.FRIENDSHIP, friendship.getId());
-
-        // Save to repository
-        notificationRepository.save(notification);
-
-    }
-
-    public void createNotificationFromMixtape(Mixtape mixtape, Profile target, Playlist playlist) {
-        // Create contents for notification
-        String contents = String.format("%s added the mixtape %s to your shared playlist %s", mixtape.getCreator().getDisplayName(), mixtape.getName(), playlist.getName());
-
-        // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.MIXTAPE, playlist.getId());
-
-        // Save to repository
-        notificationRepository.save(notification);
-    }
-
-    public void deleteNotificationFromPlaylist(Playlist playlist, Profile target) {
-        // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternalId(target, playlist.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
+    public void deleteNotificationByTargetAndExternalId(Profile target, String externalId) {
+        // Check if target and externalId have notification
+        notificationRepository.findByTargetAndExternalId(target, externalId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "External id does not match a notification of your profile"));
 
         // Delete notification
-        notificationRepository.deleteByTargetAndExternalId(target, playlist.getId());
+        notificationRepository.deleteByTargetAndExternalId(target, externalId);
     }
 
-    public void deleteNotificationFromFriendship(Friendship friendship, Profile target) {
-        // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternalId(target, friendship.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This friendship was not for given profile"));
+    public void deleteNotificationsByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        // Grab all notifications
+        notificationRepository.deleteAll(findAllNotificationByBothProfiles(firstProfile, secondProfile));
+    }
 
-        // Delete notification
-        notificationRepository.deleteByTargetAndExternalId(target, friendship.getId());
+    public void deleteNotificationsOfMixtapes(Playlist playlist) {
+        // For each mixtape, delete if within database
+        playlist
+                .getMixtapes()
+                .forEach(this::deleteNotificationOfMixtape);
+    }
+
+    public void deleteNotificationOfMixtape(Mixtape mixtape) {
+        notificationRepository.deleteByExternalId(mixtape.getId());
     }
 }

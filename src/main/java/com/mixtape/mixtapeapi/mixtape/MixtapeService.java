@@ -10,12 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class MixtapeService {
@@ -47,13 +44,13 @@ public class MixtapeService {
         return Optional.of(mixtape);
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylist(Profile profile, String playlistId) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylist(Profile profile, String playlistId) {
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
         return playlist.getMixtapes();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByTitle(Profile profile, String playlistId, String title) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylistByTitle(Profile profile, String playlistId, String title) {
         // Verify profile has playlist
         playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
@@ -63,7 +60,7 @@ public class MixtapeService {
                 .findAllByPlaylistIDAndName(playlistId, title));
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistBySongName(Profile profile, String playlistId, String songName) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylistBySongName(Profile profile, String playlistId, String songName) {
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
@@ -76,10 +73,10 @@ public class MixtapeService {
                         .stream()
                         .map(TrackInfo::getName)
                         .anyMatch(songName::equals))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByArtistName(Profile profile, String playlistId, String artistName) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylistByArtistName(Profile profile, String playlistId, String artistName) {
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
@@ -93,10 +90,10 @@ public class MixtapeService {
                         .map(TrackInfo::getArtistNames)
                         .flatMap(Collection::stream)
                         .anyMatch(artistName::equals))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByAlbumName(Profile profile, String playlistId, String albumName) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylistByAlbumName(Profile profile, String playlistId, String albumName) {
         Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
 
@@ -109,7 +106,13 @@ public class MixtapeService {
                         .stream()
                         .map(TrackInfo::getAlbumName)
                         .anyMatch(albumName::equals))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) {
+        return findMixtape(mixtapeId)
+                .map(Mixtape::getReactions)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
     }
 
     public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) {
@@ -121,46 +124,26 @@ public class MixtapeService {
         playlist.addMixtape(newMixtape);
         newMixtape.setPlaylistID(playlist.getId());
         newMixtape.setCreator(creator);
-        Duration mixtapeDuration = trackService.getMixtapeDuration(newMixtape);
-        newMixtape.setDurationMS(mixtapeDuration.toMillis());
+        newMixtape.setDurationMS(trackService
+                .getMixtapeDuration(newMixtape)
+                .toMillis());
 
         // Save mixtape
-        Mixtape savedMixtape = mixtapeRepository.save(newMixtape);
+        Mixtape mixtape = mixtapeRepository.save(newMixtape);
 
-        // Save new playlist
+        // Update playlist
         playlistService.savePlaylist(playlist);
 
+        // Grab target of notification
         Profile notificationTarget = playlist.getInitiator().equals(creator)
                 ? playlist.getTarget() : playlist.getInitiator();
 
-        // Create notification
-        notificationService.createNotificationFromMixtape(savedMixtape, notificationTarget, playlist);
+        // Create contents and notification
+        String contents = String.format("%s created a mixtape %s for your shared playlist %s", creator.getDisplayName(), mixtape.getName(), playlist.getName());
+        notificationService.createNotificationFromTrigger(mixtape, creator, notificationTarget, contents);
 
-        // inflate
-        savedMixtape = trackService.inflateMixtape(savedMixtape);
-        return savedMixtape;
-    }
-
-    public void removeMixtape(Profile profile, String playlistId, String mixtapeId) throws IOException {
-        // Check playlist exists in profile
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile does not own given playlist"));
-
-        // Check mixtape exists
-        Mixtape mixtape = findMixtape(mixtapeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
-
-        // Check playlist contains mixtape
-        if (!playlist.getMixtapes().contains(mixtape)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape is not part of given playlist");
-        }
-
-        // Remove the other side of the relationship
-        playlist.getMixtapes().remove(mixtape);
-        playlistService.savePlaylist(playlist);
-
-        // Delete mixtape
-        mixtapeRepository.delete(mixtape);
+        // Return inflated mixtape with songs
+        return trackService.inflateMixtape(mixtape);
     }
 
     public Mixtape createOrUpdateReactionForMixtape(String mixtapeId, Profile reactingUser, ReactionType reactionType) {
@@ -185,9 +168,28 @@ public class MixtapeService {
         return mixtapeRepository.save(mixtape);
     }
 
-    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) {
-        return findMixtape(mixtapeId)
-                .map(Mixtape::getReactions)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
+    public void removeMixtape(Profile profile, String playlistId, String mixtapeId) {
+        // Check playlist exists in profile
+        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile does not own given playlist"));
+
+        // Check mixtape exists
+        Mixtape mixtape = findMixtape(mixtapeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
+
+        // Check playlist contains mixtape
+        if (!playlist.getMixtapes().contains(mixtape)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape is not part of given playlist");
+        }
+
+        // Remove the other side of the relationship
+        playlist.getMixtapes().remove(mixtape);
+        playlistService.savePlaylist(playlist);
+
+        // Delete notification of mixtape
+        notificationService.deleteNotificationOfMixtape(mixtape);
+
+        // Delete mixtape
+        mixtapeRepository.delete(mixtape);
     }
 }

@@ -31,7 +31,7 @@ public class PlaylistService {
         return playlistRepository.findById(id);
     }
 
-    public Optional<Playlist> findPlaylistForProfile(Profile profile, String playlistId) throws IOException {
+    public Optional<Playlist> findPlaylistForProfile(Profile profile, String playlistId) {
         Optional<Playlist> playlistOpt = playlistRepository.findByIdAndInitiatorOrIdAndTarget(playlistId, profile, playlistId, profile);
         if (playlistOpt.isEmpty()) {
             return playlistOpt;
@@ -41,7 +41,7 @@ public class PlaylistService {
         return Optional.of(inflatedPlaylist);
     }
 
-    public List<Playlist> findPlaylistsForProfile(Profile profile) throws IOException {
+    public List<Playlist> findPlaylistsForProfile(Profile profile) {
         List<Playlist> playlists = playlistRepository.findByInitiatorAndTargetNotNullOrTarget(profile, profile);
         for (var playlist : playlists) {
             trackService.inflatePlaylist(playlist);
@@ -55,12 +55,13 @@ public class PlaylistService {
     }
 
     public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create newPlaylistDTO, Profile requestedTarget) {
-        // Create the playlist
+        // Create partial playlist
         Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
         playlist = savePlaylist(playlist);
 
-        // Create notification for accepting or denying playlist
-        notificationService.createNotificationFromPlaylist(playlist, requestedTarget);
+        // Create contents and notification for accepting or denying playlist
+        String contents = String.format("%s wants to invite you to the playlist %s", initiator.getDisplayName(), playlist.getName());
+        notificationService.createNotificationFromTrigger(playlist, initiator, requestedTarget, contents);
 
         return playlist;
     }
@@ -72,7 +73,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
 
         // Delete notification
-        notificationService.deleteNotificationFromPlaylist(playlist, target);
+        notificationService.deleteNotificationByTargetAndExternalId(target, playlistId);
 
         // Fill out fields to update
         playlist.setTarget(target);
@@ -88,7 +89,7 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
 
         // Delete notification
-        notificationService.deleteNotificationFromPlaylist(playlist, target);
+        notificationService.deleteNotificationByTargetAndExternalId(target, playlistId);
 
         // Delete playlist
         playlistRepository.delete(playlist);
@@ -97,15 +98,19 @@ public class PlaylistService {
 
     public void removePlaylist(Profile profile, String playlistId) {
         // Verify profile owns playlist
-        if (!playlistRepository.existsByIdAndInitiatorOrIdAndTarget(playlistId, profile, playlistId, profile)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile given is not part of profile");
-        }
+        Playlist playlist = playlistRepository
+                .findByIdAndInitiatorOrIdAndTarget(playlistId, profile, playlistId, profile)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist given is not part of profile"));
 
-        // Delete
-        this.playlistRepository.deleteById(playlistId);
+        // Delete all notifications within playlist
+        notificationService.deleteNotificationsOfMixtapes(playlist);
+
+        // Delete playlist
+        playlistRepository.deleteById(playlistId);
     }
 
     public void removePlaylistsByInitiatorAndTarget(Profile initiator, Profile target) {
+        // Delete playlist
         playlistRepository.deleteAllByInitiatorAndTarget(initiator, target);
     }
 

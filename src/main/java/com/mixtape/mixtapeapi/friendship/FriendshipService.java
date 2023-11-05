@@ -10,7 +10,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class FriendshipService {
@@ -37,15 +36,10 @@ public class FriendshipService {
                         return friendship.getTarget();
                     }
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
-        // Check if same profile
-        if (initiator.equals(requestedTarget)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Current profile and requested friend are same");
-        }
-
         // Check if full friendship already exists
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
                 friendshipRepository.existsByInitiatorAndTarget(requestedTarget, initiator)) {
@@ -53,31 +47,25 @@ public class FriendshipService {
         }
 
         // Check if partial friendship already exists
-        if (notificationService.notificationExistsByTargetAndContents(requestedTarget,
-                String.format("%s wants to be friends with you", initiator.getDisplayName())) ||
-                notificationService.notificationExistsByTargetAndContents(initiator,
-                    String.format("%s wants to be friends with you", requestedTarget.getDisplayName()))) {
+        if (notificationService.notificationExistsByBothProfiles(initiator, requestedTarget)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship request has been sent out already for these two");
         }
 
-        // Create friendship
+        // Create partial friendship
         Friendship friendship = new Friendship(null, initiator, null);
         friendship = friendshipRepository.save(friendship);
 
-        // Create notification for accepting or denying playlist
-        notificationService.createNotificationFromFriendship(friendship, requestedTarget);
+        // Create contents and notification for accepting or denying playlist
+        String contents = String.format("%s wants to be friends with you", initiator.getDisplayName());
+        notificationService.createNotificationFromTrigger(friendship, initiator, requestedTarget, contents);
 
         return friendship;
     }
 
     @Transactional
     public Friendship acceptFriendship(Profile target, String friendshipId) {
-        // Grab friendship
-        Friendship friendship = findFriendship(friendshipId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
-
-        // Delete notification
-        notificationService.deleteNotificationFromFriendship(friendship, target);
+        // Grab friendship and delete corresponding notification
+        Friendship friendship = grabFriendshipAndDeleteNotification(target, friendshipId);
 
         // Fill out fields to update
         friendship.setTarget(target);
@@ -88,37 +76,50 @@ public class FriendshipService {
 
     @Transactional
     public void denyFriendship(Profile target, String friendshipId) {
-        // Grab friendship
-        Friendship friendship = findFriendship(friendshipId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
-
-        // Delete notification
-        notificationService.deleteNotificationFromFriendship(friendship, target);
+        // Grab friendship and delete corresponding notification
+        Friendship friendship = grabFriendshipAndDeleteNotification(target, friendshipId);
 
         // Delete friendship
         friendshipRepository.delete(friendship);
     }
 
+    private Friendship grabFriendshipAndDeleteNotification(Profile target, String friendshipId) {
+        // Delete notification
+        notificationService.deleteNotificationByTargetAndExternalId(target, friendshipId);
+
+        // Return friendship
+        return findFriendship(friendshipId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship does not exist"));
+    }
+
     @Transactional
-    public void removeFriendship(Profile profile, String friendshipId) {
+    public void removeFriendshipByFriendship(Profile profile, String friendshipId) {
         // Verify profile and friendship matches
-        Friendship friendship = friendshipRepository.findByIdAndInitiatorOrTarget(friendshipId, profile, profile)
+        Friendship friendship = friendshipRepository
+                .findByIdAndInitiatorOrTarget(friendshipId, profile, profile)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Profile with given friendship does not exist"));
 
+        // Delete friendship and all dependent objects
         cascadeDeleteFriendship(friendship);
     }
 
     @Transactional
-    public void removeFriendshipWithFriend(Profile deleter, Profile deletee) {
+    public void removeFriendshipByFriend(Profile deleter, Profile deletee) {
+        // Verify friendship exists
         Friendship friendship = friendshipRepository
                 .findByTargetAndInitiatorOrInitiatorAndTarget(deleter, deletee, deleter, deletee)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No friendship between these profiles exist"));
-        this.cascadeDeleteFriendship(friendship);
+
+        // Delete friendship and all dependent objects
+        cascadeDeleteFriendship(friendship);
     }
 
     private void cascadeDeleteFriendship(Friendship friendship) {
         // Delete all playlists between them
         playlistService.removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
+
+        // Delete all notifications
+        notificationService.deleteNotificationsByBothProfiles(friendship.getInitiator(), friendship.getTarget());
 
         // Delete friendship
         friendshipRepository.delete(friendship);
