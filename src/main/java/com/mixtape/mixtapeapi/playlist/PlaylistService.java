@@ -42,10 +42,11 @@ public class PlaylistService {
     }
 
     public List<Playlist> findPlaylistsForProfile(Profile profile) {
+        // Grab playlists
         List<Playlist> playlists = playlistRepository.findByInitiatorAndTargetNotNullOrTarget(profile, profile);
-        for (var playlist : playlists) {
-            trackService.inflatePlaylist(playlist);
-        }
+
+        // Fill out playlist
+        playlists.forEach(trackService::inflatePlaylist);
 
         return playlists;
     }
@@ -68,12 +69,8 @@ public class PlaylistService {
 
     @Transactional
     public Playlist acceptPlaylist(Profile target, String playlistId) {
-        // Grab playlist
-        Playlist playlist = findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
-
-        // Delete notification
-        notificationService.deleteNotificationByTargetAndExternalId(target, playlistId);
+        // Grab playlist and delete corresponding notification
+        Playlist playlist = grabPlaylistAndDeleteNotification(target, playlistId);
 
         // Fill out fields to update
         playlist.setTarget(target);
@@ -84,16 +81,20 @@ public class PlaylistService {
 
     @Transactional
     public void denyPlaylist(Profile target, String playlistId) {
-        // Grab playlist
-        Playlist playlist = findPlaylist(playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
-
-        // Delete notification
-        notificationService.deleteNotificationByTargetAndExternalId(target, playlistId);
+        // Grab playlist and delete corresponding notification
+        Playlist playlist = grabPlaylistAndDeleteNotification(target, playlistId);
 
         // Delete playlist
         playlistRepository.delete(playlist);
+    }
 
+    private Playlist grabPlaylistAndDeleteNotification(Profile target, String playlistId) {
+        // Delete notification
+        notificationService.deleteNotificationByTargetAndExternalId(target, playlistId);
+
+        // Return playlist
+        return findPlaylist(playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
     }
 
     public void removePlaylist(Profile profile, String playlistId) {
