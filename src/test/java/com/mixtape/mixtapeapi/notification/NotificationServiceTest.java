@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.core.parameters.P;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.assertArg;
@@ -32,16 +31,19 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void createNotificationFromPlaylist_createsProperlyFormattedMessage() {
+    void createNotificationFromTrigger_playlistCreatesProperlyFormattedMessage() {
         Playlist mockPlaylist = new Playlist();
         mockPlaylist.setId("pl1");
         mockPlaylist.setName("playlist");
         mockPlaylist.setInitiator(initiator);
 
-        notificationService.createNotificationFromPlaylist(mockPlaylist, target);
+        String contents = "user-1 wants to invite you to their playlist playlist";
+
+        notificationService.createNotificationFromTrigger(mockPlaylist, initiator, target, contents);
 
         verify(mockRepository).save(assertArg(notification -> {
-            assertThat(notification.getContents()).isEqualTo("user-1 wants to invite you to their playlist playlist");
+            assertThat(notification.getContents()).isEqualTo(contents);
+            assertThat(notification.getInitiator()).isEqualTo(initiator);
             assertThat(notification.getTarget()).isEqualTo(target);
             assertThat(notification.getNotificationType()).isEqualTo(NotificationType.PLAYLIST);
             assertThat(notification.getExternalId()).isEqualTo("pl1");
@@ -49,15 +51,18 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void createNotificationFromFriendship_createsProperlyFormattedNotification() {
+    void createNotificationFromTrigger_friendshipCreatesProperlyFormattedNotification() {
         Friendship mockFriendship = new Friendship();
         mockFriendship.setId("f1");
         mockFriendship.setInitiator(initiator);
 
-        notificationService.createNotificationFromFriendship(mockFriendship, target);
+        String contents = "user-1 wants to be friends with you";
+
+        notificationService.createNotificationFromTrigger(mockFriendship, initiator, target, contents);
 
         verify(mockRepository).save(assertArg(notification -> {
-            assertThat(notification.getContents()).isEqualTo("user-1 wants to be friends with you");
+            assertThat(notification.getContents()).isEqualTo(contents);
+            assertThat(notification.getInitiator()).isEqualTo(initiator);
             assertThat(notification.getTarget()).isEqualTo(target);
             assertThat(notification.getNotificationType()).isEqualTo(NotificationType.FRIENDSHIP);
             assertThat(notification.getExternalId()).isEqualTo("f1");
@@ -65,7 +70,7 @@ public class NotificationServiceTest {
     }
 
     @Test
-    void createNotificationFromMixtape_createsProperlyFormattedNotification() {
+    void createNotificationFromTrigger_mixtapeCreatesProperlyFormattedNotification() {
         Mixtape mockMixtape = new Mixtape();
         mockMixtape.setId("m1");
         mockMixtape.setCreator(initiator);
@@ -74,13 +79,16 @@ public class NotificationServiceTest {
         playlist.setId("pl1");
         playlist.setName("playlist");
 
-        notificationService.createNotificationFromMixtape(mockMixtape, target, playlist);
+        String contents = "user-1 added the mixtape mixtape to your shared playlist playlist";
+
+        notificationService.createNotificationFromTrigger(mockMixtape, initiator, target, contents);
 
         verify(mockRepository).save(assertArg(notification -> {
-            assertThat(notification.getContents()).isEqualTo("user-1 added the mixtape mixtape to your shared playlist playlist");
+            assertThat(notification.getContents()).isEqualTo(contents);
+            assertThat(notification.getInitiator()).isEqualTo(initiator);
             assertThat(notification.getTarget()).isEqualTo(target);
             assertThat(notification.getNotificationType()).isEqualTo(NotificationType.MIXTAPE);
-            assertThat(notification.getExternalId()).isEqualTo("pl1");
+            assertThat(notification.getExternalId()).isEqualTo("m1");
         }));
     }
 }

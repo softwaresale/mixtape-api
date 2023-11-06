@@ -69,7 +69,7 @@ public class FriendshipServiceTest {
 
         assertThat(newFriendship.getInitiator()).isEqualTo(mockProfiles.get(0));
         assertThat(newFriendship.getTarget()).isNull();
-        verify(mockNotificationService).createNotificationFromFriendship(newFriendship, mockProfiles.get(1));
+        verify(mockNotificationService).createNotificationFromTrigger(newFriendship, mockProfiles.get(0), mockProfiles.get(1), "Charlie wants to be friends with you");
     }
 
     @Test
@@ -79,7 +79,7 @@ public class FriendshipServiceTest {
         when(mockRepository.findByIdAndInitiatorOrTarget(friendship.getId(), mockProfiles.get(0), mockProfiles.get(0)))
                 .thenReturn(Optional.of(friendship));
 
-        friendshipService.removeFriendship(mockProfiles.get(0), friendship.getId());
+        friendshipService.removeFriendshipByFriendship(mockProfiles.get(0), friendship.getId());
 
         verify(mockPlaylistService).removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
         verify(mockRepository).delete(friendship);

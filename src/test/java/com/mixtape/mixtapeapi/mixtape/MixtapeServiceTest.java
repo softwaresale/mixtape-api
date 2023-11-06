@@ -12,12 +12,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class MixtapeServiceTest {
@@ -42,15 +44,19 @@ public class MixtapeServiceTest {
     }
 
     @Test
-    void createMixtapeForPlaylist_shouldAddMixtapeToPlaylist_whenSuccessful() throws IOException {
+    void createMixtapeForPlaylist_shouldAddMixtapeToPlaylist_whenSuccessful() {
         String mockPlaylistId = "playlist-id";
         Profile mockProfile = new Profile();
         mockProfile.setId("id1");
+        mockProfile.setDisplayName("name1");
         Profile mockTarget = new Profile();
         mockTarget.setId("id2");
+        mockTarget.setDisplayName("name2");
         Mixtape mockMixtape = new Mixtape();
+        mockMixtape.setName("mixtape1");
         Playlist mockPlaylist = new Playlist();
         mockPlaylist.setId(mockPlaylistId);
+        mockPlaylist.setName("playlist1");
         mockPlaylist.setInitiator(mockProfile);
         mockPlaylist.setTarget(mockTarget);
 
@@ -62,7 +68,7 @@ public class MixtapeServiceTest {
         Mixtape newMixtape = mixtapeService.createMixtapeForPlaylist(mockProfile, mockPlaylistId, mockMixtape);
         assertThat(newMixtape).isEqualTo(mockMixtape);
         assertThat(newMixtape.getCreator()).isEqualTo(mockProfile);
-        assertThat(newMixtape.getPlaylistID()).isEqualTo(mockPlaylistId);
+        assertThat(newMixtape.getPlaylistId()).isEqualTo(mockPlaylistId);
         assertThat(newMixtape.getDurationMS()).isEqualTo(4000);
         assertThat(mockPlaylist.getMixtapes()).contains(mockMixtape);
 
@@ -71,11 +77,11 @@ public class MixtapeServiceTest {
         verify(mockTrackService).inflateMixtape(mockMixtape);
         verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
-        verify(mockNotificationService).createNotificationFromMixtape(mockMixtape, mockTarget, mockPlaylist);
+        verify(mockNotificationService).createNotificationFromTrigger(mockMixtape, mockProfile, mockTarget, "name1 created a mixtape mixtape1 for your shared playlist playlist1");
     }
 
     @Test
-    void createOrUpdateReactionForMixtape_doesNothing_whenReactionAlreadyExists() throws IOException {
+    void createOrUpdateReactionForMixtape_doesNothing_whenReactionAlreadyExists() {
         Mixtape mixtape = new Mixtape();
         mixtape.setId("mixtape-id");
         Profile reactingUser = new Profile();
@@ -96,7 +102,7 @@ public class MixtapeServiceTest {
     }
 
     @Test
-    void createOrUpdateReactionForMixtape_createsNewReaction_forNewReactionFromUser() throws IOException {
+    void createOrUpdateReactionForMixtape_createsNewReaction_forNewReactionFromUser() {
         Mixtape mixtape = new Mixtape();
         mixtape.setId("mixtape-id");
         Profile reactingUser = new Profile();
@@ -121,7 +127,7 @@ public class MixtapeServiceTest {
     }
 
     @Test
-    void createOrUpdateReactionForMixtape_updatesExistingReaction_forExistingReaction() throws IOException {
+    void createOrUpdateReactionForMixtape_updatesExistingReaction_forExistingReaction() {
         Mixtape mixtape = new Mixtape();
         mixtape.setId("mixtape-id");
         Profile reactingUser = new Profile();

@@ -3,7 +3,13 @@ package com.mixtape.mixtapeapi.mixtape;
 import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Transient;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,7 +26,7 @@ public class Mixtape extends BaseEntity {
     private Long durationMS;
 
     @ManyToOne
-    @JoinColumn(name="creator_id")
+    @JoinColumn(name = "creator_id")
     private Profile creator;
 
     @ElementCollection
@@ -129,7 +135,9 @@ public class Mixtape extends BaseEntity {
     }
 
     public void addReaction(Reaction reaction) {
-        Optional<Reaction> existingReaction = this.reactions.stream()
+        Optional<Reaction> existingReaction = this
+                .reactions
+                .stream()
                 .filter(existing -> existing.getId().equals(reaction.getId()))
                 .findFirst();
 
