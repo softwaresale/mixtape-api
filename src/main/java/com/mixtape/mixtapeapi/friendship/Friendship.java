@@ -1,11 +1,20 @@
 package com.mixtape.mixtapeapi.friendship;
 
-import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
-public class Friendship extends BaseEntity {
+public class Friendship {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
     @ManyToOne
     @JoinColumn(name="initiator_id")
     private Profile initiator;
@@ -21,6 +30,14 @@ public class Friendship extends BaseEntity {
         this.id = id;
         this.initiator = initiator;
         this.target = target;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Profile getInitiator() {

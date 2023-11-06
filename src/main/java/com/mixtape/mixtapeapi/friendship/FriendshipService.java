@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.friendship;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.transaction.Transactional;
@@ -57,7 +58,7 @@ public class FriendshipService {
 
         // Create contents and notification for accepting or denying playlist
         String contents = String.format("%s wants to be friends with you", initiator.getDisplayName());
-        notificationService.createNotificationFromTrigger(friendship, initiator, requestedTarget, contents);
+        notificationService.createNotificationFromTrigger(friendship.getId(), initiator, requestedTarget, contents, NotificationType.FRIENDSHIP);
 
         return friendship;
     }

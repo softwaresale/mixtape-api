@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.mixtape;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -137,7 +138,7 @@ public class MixtapeService {
 
         // Create contents and notification
         String contents = String.format("%s created a mixtape %s for your shared playlist %s", creator.getDisplayName(), mixtape.getName(), playlist.getName());
-        notificationService.createNotificationFromTrigger(mixtape, creator, notificationTarget, contents);
+        notificationService.createNotificationFromTrigger(mixtape.getId(), creator, notificationTarget, contents, NotificationType.MIXTAPE);
 
         // Return inflated mixtape with songs
         return trackService.inflateMixtape(mixtape);

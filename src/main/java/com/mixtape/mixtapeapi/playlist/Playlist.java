@@ -1,17 +1,27 @@
 package com.mixtape.mixtapeapi.playlist;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.profile.Profile;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Entity
-public class Playlist extends BaseEntity {
+public class Playlist {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     private String spotifyID;
     private String name;
 
@@ -41,6 +51,14 @@ public class Playlist extends BaseEntity {
         this.description = description;
         this.coverPicURL = coverPicURL;
         this.mixtapes = new ArrayList<>();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getSpotifyID() {

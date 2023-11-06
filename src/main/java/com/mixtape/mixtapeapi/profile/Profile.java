@@ -1,10 +1,16 @@
 package com.mixtape.mixtapeapi.profile;
 
-import com.mixtape.mixtapeapi.BaseEntity;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
 @Entity
-public class Profile extends BaseEntity {
+public class Profile {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
     private String spotifyUID;
     private String displayName;
     private String profilePicURL;
@@ -17,6 +23,14 @@ public class Profile extends BaseEntity {
         this.spotifyUID = spotifyUID;
         this.displayName = displayName;
         this.profilePicURL = profilePicURL;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getSpotifyUID() {
