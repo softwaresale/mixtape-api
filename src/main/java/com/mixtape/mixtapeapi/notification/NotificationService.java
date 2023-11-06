@@ -54,6 +54,8 @@ public class NotificationService {
         // Create notification
         Notification notification = new Notification(null, initiator, target, contents, type, trigger.getId());
 
+        // TODO: External id for mixtape notifications?
+
         // Save to repository
         notificationRepository.save(notification);
     }
