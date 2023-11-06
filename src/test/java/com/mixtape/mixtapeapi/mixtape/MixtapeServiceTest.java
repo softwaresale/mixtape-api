@@ -79,7 +79,7 @@ public class MixtapeServiceTest {
         verify(mockTrackService).inflateMixtape(mockMixtape);
         verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
-        verify(mockNotificationService).createNotificationFromTrigger("mixtapeId1", mockProfile, mockTarget, "name1 created a mixtape mixtape1 for your shared playlist playlist1", NotificationType.MIXTAPE);
+        verify(mockNotificationService).createNotificationFromTrigger("mixtapeId1", mockProfile, mockTarget, "name1 created a mixtape mixtape1 for your shared playlist playlist1", NotificationType.MIXTAPE, mockPlaylistId);
     }
 
     @Test

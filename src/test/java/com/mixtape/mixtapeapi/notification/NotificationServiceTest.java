@@ -39,7 +39,7 @@ public class NotificationServiceTest {
 
         String contents = "user-1 wants to invite you to their playlist playlist";
 
-        notificationService.createNotificationFromTrigger("pl1", initiator, target, contents, NotificationType.PLAYLIST);
+        notificationService.createNotificationFromTrigger("pl1", initiator, target, contents, NotificationType.PLAYLIST, "");
 
         verify(mockRepository).save(assertArg(notification -> {
             assertThat(notification.getContents()).isEqualTo(contents);
@@ -58,7 +58,7 @@ public class NotificationServiceTest {
 
         String contents = "user-1 wants to be friends with you";
 
-        notificationService.createNotificationFromTrigger("f1", initiator, target, contents, NotificationType.FRIENDSHIP);
+        notificationService.createNotificationFromTrigger("f1", initiator, target, contents, NotificationType.FRIENDSHIP, "");
 
         verify(mockRepository).save(assertArg(notification -> {
             assertThat(notification.getContents()).isEqualTo(contents);
@@ -81,7 +81,7 @@ public class NotificationServiceTest {
 
         String contents = "user-1 added the mixtape mixtape to your shared playlist playlist";
 
-        notificationService.createNotificationFromTrigger("m1", initiator, target, contents, NotificationType.MIXTAPE);
+        notificationService.createNotificationFromTrigger("m1", initiator, target, contents, NotificationType.MIXTAPE, "pl1");
 
         verify(mockRepository).save(assertArg(notification -> {
             assertThat(notification.getContents()).isEqualTo(contents);

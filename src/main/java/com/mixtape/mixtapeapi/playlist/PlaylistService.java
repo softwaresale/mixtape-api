@@ -63,7 +63,7 @@ public class PlaylistService {
 
         // Create contents and notification for accepting or denying playlist
         String contents = String.format("%s wants to invite you to the playlist %s", initiator.getDisplayName(), playlist.getName());
-        notificationService.createNotificationFromTrigger(playlist.getId(), initiator, requestedTarget, contents, NotificationType.PLAYLIST);
+        notificationService.createNotificationFromTrigger(playlist.getId(), initiator, requestedTarget, contents, NotificationType.PLAYLIST, "");
 
         return playlist;
     }

@@ -138,7 +138,7 @@ public class MixtapeService {
 
         // Create contents and notification
         String contents = String.format("%s created a mixtape %s for your shared playlist %s", creator.getDisplayName(), mixtape.getName(), playlist.getName());
-        notificationService.createNotificationFromTrigger(mixtape.getId(), creator, notificationTarget, contents, NotificationType.MIXTAPE);
+        notificationService.createNotificationFromTrigger(mixtape.getId(), creator, notificationTarget, contents, NotificationType.MIXTAPE, playlistId);
 
         // Return inflated mixtape with songs
         return trackService.inflateMixtape(mixtape);
