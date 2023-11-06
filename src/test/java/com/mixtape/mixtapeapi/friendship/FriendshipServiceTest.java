@@ -71,7 +71,7 @@ public class FriendshipServiceTest {
 
         assertThat(newFriendship.getInitiator()).isEqualTo(mockProfiles.get(0));
         assertThat(newFriendship.getTarget()).isNull();
-        verify(mockNotificationService).createNotificationFromTrigger(eq(null), eq(mockProfiles.get(0)), eq(mockProfiles.get(1)), eq("Charlie wants to be friends with you"), eq(NotificationType.FRIENDSHIP));
+        verify(mockNotificationService).createNotificationFromTrigger(eq(null), eq(mockProfiles.get(0)), eq(mockProfiles.get(1)), eq("Charlie wants to be friends with you"), eq(NotificationType.FRIENDSHIP), eq(""));
     }
 
     @Test

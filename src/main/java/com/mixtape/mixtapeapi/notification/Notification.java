@@ -29,18 +29,20 @@ public class Notification {
     private NotificationType notificationType;
 
     private String externalId;
+    private String routingPath;
 
-    public Notification(String id, Profile initiator, Profile target, String contents, NotificationType notificationType, String externalId) {
+    public Notification(String id, Profile initiator, Profile target, String contents, NotificationType notificationType, String externalId, String routingPath) {
         this.id = id;
         this.initiator = initiator;
         this.target = target;
         this.contents = contents;
         this.notificationType = notificationType;
         this.externalId = externalId;
+        this.routingPath = routingPath;
     }
 
     public Notification() {
-        this("", null, null, "", NotificationType.PLAYLIST, "");
+        this("", null, null, "", NotificationType.PLAYLIST, "", "");
     }
 
     @Override
@@ -101,5 +103,13 @@ public class Notification {
 
     public void setExternalId(String externalId) {
         this.externalId = externalId;
+    }
+
+    public String getRoutingPath() {
+        return routingPath;
+    }
+
+    public void setRoutingPath(String routingPath) {
+        this.routingPath = routingPath;
     }
 }

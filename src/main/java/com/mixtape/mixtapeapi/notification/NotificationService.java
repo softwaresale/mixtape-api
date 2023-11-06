@@ -34,9 +34,9 @@ public class NotificationService {
         ).toList();
     }
 
-    public void createNotificationFromTrigger(String triggerId, Profile initiator, Profile target, String contents, NotificationType type) {
+    public void createNotificationFromTrigger(String triggerId, Profile initiator, Profile target, String contents, NotificationType type, String routingPath) {
         // Create notification
-        Notification notification = new Notification(null, initiator, target, contents, type, triggerId);
+        Notification notification = new Notification(null, initiator, target, contents, type, triggerId, routingPath);
 
         // TODO: External id for mixtape notifications?
 
