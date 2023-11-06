@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.mixtape;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -54,6 +55,7 @@ public class MixtapeServiceTest {
         mockTarget.setDisplayName("name2");
         Mixtape mockMixtape = new Mixtape();
         mockMixtape.setName("mixtape1");
+        mockMixtape.setId("mixtapeId1");
         Playlist mockPlaylist = new Playlist();
         mockPlaylist.setId(mockPlaylistId);
         mockPlaylist.setName("playlist1");
@@ -77,7 +79,7 @@ public class MixtapeServiceTest {
         verify(mockTrackService).inflateMixtape(mockMixtape);
         verify(mockPlaylistService).savePlaylist(mockPlaylist);
         verify(mockMixtapeRepository).save(mockMixtape);
-        verify(mockNotificationService).createNotificationFromTrigger(mockMixtape, mockProfile, mockTarget, "name1 created a mixtape mixtape1 for your shared playlist playlist1");
+        verify(mockNotificationService).createNotificationFromTrigger("mixtapeId1", mockProfile, mockTarget, "name1 created a mixtape mixtape1 for your shared playlist playlist1", NotificationType.MIXTAPE);
     }
 
     @Test

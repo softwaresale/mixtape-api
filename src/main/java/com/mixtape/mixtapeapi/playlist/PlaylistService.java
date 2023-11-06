@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.playlist;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import jakarta.transaction.Transactional;
@@ -62,7 +63,7 @@ public class PlaylistService {
 
         // Create contents and notification for accepting or denying playlist
         String contents = String.format("%s wants to invite you to the playlist %s", initiator.getDisplayName(), playlist.getName());
-        notificationService.createNotificationFromTrigger(playlist, initiator, requestedTarget, contents);
+        notificationService.createNotificationFromTrigger(playlist.getId(), initiator, requestedTarget, contents, NotificationType.PLAYLIST);
 
         return playlist;
     }

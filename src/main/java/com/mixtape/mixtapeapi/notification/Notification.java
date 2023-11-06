@@ -1,15 +1,21 @@
 package com.mixtape.mixtapeapi.notification;
 
-import com.mixtape.mixtapeapi.BaseEntity;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @EntityListeners(NotificationListener.class)
 @Entity
-public class Notification extends BaseEntity {
+public class Notification {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
+
     @ManyToOne
     @JoinColumn(name="initiator_id")
     private Profile initiator;
@@ -47,6 +53,14 @@ public class Notification extends BaseEntity {
         sb.append(", externalId='").append(externalId).append('\'');
         sb.append('}');
         return sb.toString();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public Profile getInitiator() {

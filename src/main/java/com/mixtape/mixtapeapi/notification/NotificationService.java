@@ -1,7 +1,5 @@
 package com.mixtape.mixtapeapi.notification;
 
-import com.mixtape.mixtapeapi.BaseEntity;
-import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -36,23 +34,9 @@ public class NotificationService {
         ).toList();
     }
 
-    public <T extends BaseEntity> void createNotificationFromTrigger(T trigger, Profile initiator, Profile target, String contents) {
-        // Declare type
-        NotificationType type;
-
-        // Initialize type
-        if (trigger instanceof Friendship) {
-            type = NotificationType.FRIENDSHIP;
-        } else if (trigger instanceof Playlist) {
-            type = NotificationType.PLAYLIST;
-        } else if (trigger instanceof Mixtape) {
-            type = NotificationType.MIXTAPE;
-        } else {
-            throw new RuntimeException("Given trigger is not friendship, playlist, or mixtape");
-        }
-
+    public void createNotificationFromTrigger(String triggerId, Profile initiator, Profile target, String contents, NotificationType type) {
         // Create notification
-        Notification notification = new Notification(null, initiator, target, contents, type, trigger.getId());
+        Notification notification = new Notification(null, initiator, target, contents, type, triggerId);
 
         // TODO: External id for mixtape notifications?
 

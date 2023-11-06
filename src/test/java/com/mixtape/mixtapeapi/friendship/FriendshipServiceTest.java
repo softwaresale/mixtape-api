@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.friendship;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,7 +71,7 @@ public class FriendshipServiceTest {
 
         assertThat(newFriendship.getInitiator()).isEqualTo(mockProfiles.get(0));
         assertThat(newFriendship.getTarget()).isNull();
-        verify(mockNotificationService).createNotificationFromTrigger(newFriendship, mockProfiles.get(0), mockProfiles.get(1), "Charlie wants to be friends with you");
+        verify(mockNotificationService).createNotificationFromTrigger(eq(null), eq(mockProfiles.get(0)), eq(mockProfiles.get(1)), eq("Charlie wants to be friends with you"), eq(NotificationType.FRIENDSHIP));
     }
 
     @Test
