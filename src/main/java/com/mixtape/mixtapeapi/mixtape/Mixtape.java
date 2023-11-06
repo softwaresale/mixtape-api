@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Entity
 public class Mixtape extends BaseEntity {
-    private String playlistID;
+    private String playlistId;
     private String name;
     private LocalDateTime createdAt;
     private String description;
@@ -40,9 +40,9 @@ public class Mixtape extends BaseEntity {
         this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs, new ArrayList<>());
     }
 
-    public Mixtape(String id, String playlistID, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs, List<Reaction> reactions) {
+    public Mixtape(String id, String playlistId, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs, List<Reaction> reactions) {
         this.id = id;
-        this.playlistID = playlistID;
+        this.playlistId = playlistId;
         this.name = name;
         this.createdAt = createdAt;
         this.description = description;
@@ -52,12 +52,12 @@ public class Mixtape extends BaseEntity {
         this.reactions = reactions;
     }
 
-    public String getPlaylistID() {
-        return playlistID;
+    public String getPlaylistId() {
+        return playlistId;
     }
 
-    public void setPlaylistID(String playlistID) {
-        this.playlistID = playlistID;
+    public void setPlaylistId(String playlistID) {
+        this.playlistId = playlistID;
     }
 
     public String getName() {
@@ -145,19 +145,19 @@ public class Mixtape extends BaseEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Mixtape mixtape = (Mixtape) o;
-        return Objects.equals(id, mixtape.id) && Objects.equals(playlistID, mixtape.playlistID) && Objects.equals(name, mixtape.name) && Objects.equals(createdAt, mixtape.createdAt) && Objects.equals(description, mixtape.description) && Objects.equals(durationMS, mixtape.durationMS) && Objects.equals(creator, mixtape.creator) && Objects.equals(songIDs, mixtape.songIDs) && Objects.equals(songs, mixtape.songs) && Objects.equals(reactions, mixtape.reactions);
+        return Objects.equals(id, mixtape.id) && Objects.equals(playlistId, mixtape.playlistId) && Objects.equals(name, mixtape.name) && Objects.equals(createdAt, mixtape.createdAt) && Objects.equals(description, mixtape.description) && Objects.equals(durationMS, mixtape.durationMS) && Objects.equals(creator, mixtape.creator) && Objects.equals(songIDs, mixtape.songIDs) && Objects.equals(songs, mixtape.songs) && Objects.equals(reactions, mixtape.reactions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, playlistID, name, createdAt, description, durationMS, creator, songIDs, songs, reactions);
+        return Objects.hash(id, playlistId, name, createdAt, description, durationMS, creator, songIDs, songs, reactions);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Mixtape{");
         sb.append("id='").append(id).append('\'');
-        sb.append(", playlistID='").append(playlistID).append('\'');
+        sb.append(", playlistID='").append(playlistId).append('\'');
         sb.append(", name='").append(name).append('\'');
         sb.append(", createdAt=").append(createdAt);
         sb.append(", description='").append(description).append('\'');

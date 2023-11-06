@@ -96,12 +96,12 @@ public class Playlist extends BaseEntity {
     }
 
     public void setMixtapes(List<Mixtape> mixtapes) {
-        mixtapes.forEach(mixtape -> mixtape.setPlaylistID(this.id));
+        mixtapes.forEach(mixtape -> mixtape.setPlaylistId(this.id));
         this.mixtapes = mixtapes;
     }
 
     public void addMixtape(Mixtape mixtape) {
-        mixtape.setPlaylistID(this.id);
+        mixtape.setPlaylistId(this.id);
         this.mixtapes.add(mixtape);
     }
 
