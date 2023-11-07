@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service
@@ -18,9 +19,13 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public boolean notificationExistsByBothProfiles(Profile firstProfile, Profile secondProfile) {
-        return notificationRepository.existsByInitiatorAndTarget(firstProfile, secondProfile) ||
-                notificationRepository.existsByInitiatorAndTarget(secondProfile, firstProfile);
+    public boolean friendshipNotificationExistsByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        return notificationRepository.existsByInitiatorAndTargetAndNotificationType(firstProfile, secondProfile, NotificationType.FRIENDSHIP) ||
+                notificationRepository.existsByInitiatorAndTargetAndNotificationType(secondProfile, firstProfile, NotificationType.FRIENDSHIP);
+    }
+
+    public Optional<Notification> findPlaylistNotification(String playlistId) {
+        return notificationRepository.findByExternalId(playlistId);
     }
 
     public List<Notification> findAllNotificationsForTarget(Profile target) {

@@ -34,7 +34,7 @@ public class FriendshipController extends AbstractRestController {
     }
 
     @DeleteMapping("/friends/{friendId}")
-    public void deleteFriendshipWithFriend(@PathVariable String profileId, @PathVariable String friendId) {
+    public void deleteFriendshipByFriend(@PathVariable String profileId, @PathVariable String friendId) {
         Profile deleter = resolveProfileOr404(profileId);
         Profile deletee = resolveProfileOr404(friendId);
 

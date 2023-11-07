@@ -83,7 +83,7 @@ public class FriendshipServiceTest {
 
         friendshipService.removeFriendshipByFriendship(mockProfiles.get(0), friendship.getId());
 
-        verify(mockPlaylistService).removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
+        verify(mockPlaylistService).removePlaylistsByBothProfiles(friendship.getInitiator(), friendship.getTarget());
         verify(mockRepository).delete(friendship);
     }
 }

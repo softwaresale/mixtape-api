@@ -2,6 +2,7 @@ package com.mixtape.mixtapeapi.friendship;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.notification.NotificationType;
+import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import jakarta.transaction.Transactional;
@@ -48,7 +49,7 @@ public class FriendshipService {
         }
 
         // Check if partial friendship already exists
-        if (notificationService.notificationExistsByBothProfiles(initiator, requestedTarget)) {
+        if (notificationService.friendshipNotificationExistsByBothProfiles(initiator, requestedTarget)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship request has been sent out already for these two");
         }
 
@@ -117,7 +118,15 @@ public class FriendshipService {
 
     private void cascadeDeleteFriendship(Friendship friendship) {
         // Delete all playlists between them
-        playlistService.removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
+        playlistService.removePlaylistsByBothProfiles(friendship.getInitiator(), friendship.getTarget());
+
+        // Delete all pending playlists between
+        playlistService
+                .findPendingPlaylistsByInitiatorOrTarget(friendship.getInitiator(), friendship.getTarget())
+                .stream()
+                .map(Playlist::getId)
+                .filter(playlistId -> notificationService.findPlaylistNotification(playlistId).isPresent())
+                .forEach(playlistService::removePlaylistById);
 
         // Delete all notifications
         notificationService.deleteNotificationsByBothProfiles(friendship.getInitiator(), friendship.getTarget());

@@ -7,6 +7,7 @@ import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import com.mixtape.mixtapeapi.tracks.TrackService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -166,6 +167,7 @@ public class MixtapeService {
         return mixtapeRepository.save(mixtape);
     }
 
+    @Transactional
     public void removeMixtape(Profile profile, String playlistId, String mixtapeId) {
         // Check playlist exists in profile
         Playlist playlist = findExistingPlaylistForProfile(profile, playlistId);
