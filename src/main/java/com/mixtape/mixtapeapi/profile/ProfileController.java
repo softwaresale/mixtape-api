@@ -19,18 +19,18 @@ public class ProfileController extends AbstractRestController {
         super(profileService);
     }
 
-    @PostMapping
-    public Profile createNewProfile(@RequestBody Profile newProfile) {
-        return profileService.saveProfile(newProfile);
-    }
-
-    @GetMapping
-    public List<Profile> search(@RequestParam("displayName") String searchDisplayName) {
-        return profileService.searchProfilesByDisplayName(searchDisplayName);
-    }
-
     @GetMapping("/{profileId}")
     public Profile getProfile(@PathVariable String profileId) {
         return resolveProfileOr404(profileId);
+    }
+
+    @GetMapping
+    public List<Profile> getProfilesByDisplayNameFuzzy(@RequestParam("displayName") String searchDisplayName) {
+        return profileService.findProfilesByDisplayNameFuzzySearch(searchDisplayName);
+    }
+
+    @PostMapping
+    public Profile createNewProfile(@RequestBody Profile newProfile) {
+        return profileService.saveProfile(newProfile);
     }
 }
