@@ -17,6 +17,8 @@ public interface PlaylistRepository extends JpaRepository<Playlist, String> {
     Optional<Playlist> findByIdAndInitiatorOrIdAndTarget(String id1, Profile initiator, String id2, Profile target);
 
     List<Playlist> findByInitiatorAndTargetNotNullOrTarget(Profile initiator, Profile target);
+    List<Playlist> findByInitiatorAndTargetIsNull(Profile initiator);
+    List<Playlist> findByTargetAndInitiatorIsNull(Profile target);
 
     void deleteAllByInitiatorAndTarget(Profile initiator, Profile target);
 }

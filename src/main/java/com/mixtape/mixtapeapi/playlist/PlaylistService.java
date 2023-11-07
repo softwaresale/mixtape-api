@@ -13,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class PlaylistService {
@@ -50,6 +51,17 @@ public class PlaylistService {
         playlists.forEach(trackService::inflatePlaylist);
 
         return playlists;
+    }
+
+    public List<Playlist> findPendingPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
+        return Stream.of(
+                playlistRepository.findByInitiatorAndTargetIsNull(initiator),
+                playlistRepository.findByTargetAndInitiatorIsNull(initiator),
+                playlistRepository.findByInitiatorAndTargetIsNull(target),
+                playlistRepository.findByTargetAndInitiatorIsNull(target)
+        )
+                .flatMap(List::stream)
+                .toList();
     }
 
     public Playlist savePlaylist(Playlist playlist) {
@@ -98,6 +110,11 @@ public class PlaylistService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Playlist does not exist"));
     }
 
+    public void removePlaylistById(String playlistId) {
+        playlistRepository.deleteById(playlistId);
+    }
+
+    @Transactional
     public void removePlaylist(Profile profile, String playlistId) {
         // Verify profile owns playlist
         Playlist playlist = playlistRepository
@@ -108,12 +125,13 @@ public class PlaylistService {
         notificationService.deleteNotificationsOfMixtapes(playlist);
 
         // Delete playlist
-        playlistRepository.deleteById(playlistId);
+        removePlaylistById(playlistId);
     }
 
-    public void removePlaylistsByInitiatorAndTarget(Profile initiator, Profile target) {
+    public void removePlaylistsByBothProfiles(Profile initiator, Profile target) {
         // Delete playlist
         playlistRepository.deleteAllByInitiatorAndTarget(initiator, target);
+        playlistRepository.deleteAllByInitiatorAndTarget(target, initiator);
     }
 
     public Playlist setPlaylistPicture(String playlistId, MultipartFile picture) throws IOException {
