@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +65,7 @@ public class ProfileServiceTest {
 
     @Test
     void searchProfile_callsWithAFuzzyString() {
-        profileService.searchProfilesByDisplayName("user");
+        profileService.findProfilesByDisplayNameFuzzySearch("user");
         verify(mockProfileRepository).searchProfilesByDisplayNameLikeIgnoreCase("%user%");
     }
 }

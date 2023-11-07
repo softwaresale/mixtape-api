@@ -28,11 +28,6 @@ public class ProfileService {
 
     public Optional<Profile> findProfileBySpotifyId(String id) { return profileRepository.findBySpotifyUID(id); }
 
-    public List<Profile> searchProfilesByDisplayName(String displayName) {
-        String queryValue = String.format("%%%s%%", displayName);
-        return profileRepository.searchProfilesByDisplayNameLikeIgnoreCase(queryValue);
-    }
-
     private Optional<String> findFirstProfilePic(@Nullable ArrayList<Map<String, Object>> imageObjects) {
         if (imageObjects == null) {
             return Optional.empty();
@@ -47,8 +42,9 @@ public class ProfileService {
                 .map(obj -> (String) obj);
     }
 
-    public List<Profile> findAllUsersByDisplayName(String displayName) {
-        return profileRepository.getAllByDisplayName(displayName);
+    public List<Profile> findProfilesByDisplayNameFuzzySearch(String displayName) {
+        String queryValue = String.format("%%%s%%", displayName);
+        return profileRepository.searchProfilesByDisplayNameLikeIgnoreCase(queryValue);
     }
 
     public Profile saveProfile(Profile newProfile) {
