@@ -51,9 +51,9 @@ public class TrackServiceTest {
     @Test
     void inflatePlaylist_inflatesAllMixtapes_andSetsThem() {
         List<Mixtape> mixtapes = List.of(
-                new Mixtape("1", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-1", "song-2")), new ArrayList<>()),
-                new Mixtape("2", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-3", "song-4")), new ArrayList<>()),
-                new Mixtape("3", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-5", "song-6")), new ArrayList<>())
+                new Mixtape("1", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-1", "song-2")), new ArrayList<>(), false),
+                new Mixtape("2", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-3", "song-4")), new ArrayList<>(), false),
+                new Mixtape("3", "", "mixtape1", LocalDateTime.now(), "", 0L, null, new ArrayList<>(List.of("song-5", "song-6")), new ArrayList<>(), false)
         );
         Playlist mockPlaylist = new Playlist();
         mockPlaylist.setMixtapes(mixtapes);
