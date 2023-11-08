@@ -24,4 +24,6 @@ public interface SpotifyService {
      * @throws ResponseStatusException An HTTP response exception that the user should see and make sense of
      */
     Duration getTracksDuration(String ...ids) throws ResponseStatusException;
+
+    void enqueueSongs(String token, List<String> ids) throws ResponseStatusException;
 }

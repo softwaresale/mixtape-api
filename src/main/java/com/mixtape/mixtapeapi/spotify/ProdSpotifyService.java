@@ -117,4 +117,29 @@ public class ProdSpotifyService implements SpotifyService {
     public Instant getTokenExpiresAt() {
         return tokenExpiresAt;
     }
+
+    @Override
+    public void enqueueSongs(String token, List<String> ids) throws ResponseStatusException {
+        // Save the token state
+        String savedAccessToken = this.spotifyApi.getAccessToken();
+        this.spotifyApi.setAccessToken(token);
+
+        for (String id : ids) {
+            String uri = formatSpotifyUriForTrack(id);
+            try {
+                this.spotifyApi.addItemToUsersPlaybackQueue(uri)
+                        .build()
+                        .execute();
+            } catch (IOException | SpotifyWebApiException | ParseException e) {
+                logger.error("Error while enqueueing song for user", e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify request", e);
+            }
+        }
+
+        this.spotifyApi.setAccessToken(savedAccessToken);
+    }
+
+    private String formatSpotifyUriForTrack(String trackId) {
+        return String.format("spotify:track:%s", trackId);
+    }
 }
