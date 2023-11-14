@@ -45,12 +45,17 @@ public class FriendshipService {
         // Check if full friendship already exists
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
                 friendshipRepository.existsByInitiatorAndTarget(requestedTarget, initiator)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship between these two already exists");
+            throw new ResponseStatusException(HttpStatus.valueOf(460), "Friendship between these two already exists");
         }
 
-        // Check if partial friendship already exists
-        if (notificationService.friendshipNotificationExistsByBothProfiles(initiator, requestedTarget)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Friendship request has been sent out already for these two");
+        // Check if partial friendship already exists that initiator has created
+        if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(initiator, requestedTarget)) {
+            throw new ResponseStatusException(HttpStatus.valueOf(461), "You have already sent out a friendship request for this user");
+        }
+
+        // Check if partial friendship already exists that target has created
+        if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(requestedTarget, initiator)) {
+            throw new ResponseStatusException(HttpStatus.valueOf(462), "This user has already sent you a friendship request");
         }
 
         // Create partial friendship
