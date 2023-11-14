@@ -19,9 +19,8 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public boolean friendshipNotificationExistsByBothProfiles(Profile firstProfile, Profile secondProfile) {
-        return notificationRepository.existsByInitiatorAndTargetAndNotificationType(firstProfile, secondProfile, NotificationType.FRIENDSHIP) ||
-                notificationRepository.existsByInitiatorAndTargetAndNotificationType(secondProfile, firstProfile, NotificationType.FRIENDSHIP);
+    public boolean friendshipNotificationExistsByInitiatorAndTarget(Profile initiator, Profile target) {
+        return notificationRepository.existsByInitiatorAndTargetAndNotificationType(initiator, target, NotificationType.FRIENDSHIP);
     }
 
     public Optional<Notification> findPlaylistNotification(String playlistId) {
