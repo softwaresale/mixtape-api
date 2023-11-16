@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.github.softwaresale.mixtape'
-version = '1.0.0'
+version = '1.1.0'
 
 java {
     sourceCompatibility = '17'
@@ -40,6 +40,9 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.assertj:assertj-core:3.22.0'
+
+    implementation(platform("software.amazon.awssdk:bom:2.21.1"))
+    implementation 'software.amazon.awssdk:secretsmanager'
 
     // Store session in the database...
     // implementation 'org.springframework.session:spring-session-jdbc'
