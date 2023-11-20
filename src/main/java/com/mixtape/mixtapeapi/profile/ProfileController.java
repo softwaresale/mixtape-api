@@ -29,6 +29,17 @@ public class ProfileController extends AbstractRestController {
         return profileService.findProfilesByDisplayNameFuzzySearch(searchDisplayName);
     }
 
+    @PostMapping("/{profileId}/block")
+    public void blockProfile(@PathVariable String profileId) {
+        Profile currentUser = getAuthenticatedProfileOr404();
+        Profile blockedUser = resolveProfileOr404(profileId);
+
+        boolean blocked = profileService.blockProfile(currentUser, blockedUser);
+        if (!blocked) {
+            // TODO nothing??
+        }
+    }
+
     @PostMapping
     public Profile createNewProfile(@RequestBody Profile newProfile) {
         return profileService.saveProfile(newProfile);
