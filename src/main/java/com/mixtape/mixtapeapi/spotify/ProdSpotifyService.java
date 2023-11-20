@@ -11,11 +11,15 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.PagingCursorbased;
+import se.michaelthelin.spotify.model_objects.specification.PlayHistory;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -73,6 +77,38 @@ public class ProdSpotifyService implements SpotifyService {
             logger.error("Failed to get mixtape duration", spotifyExe);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
         }
+    }
+
+    @Override
+    public List<TrackSimplified> getRecentlyListenedToTracks(String providerToken) {
+        // Save the token state
+        String savedAccessToken = this.spotifyApi.getAccessToken();
+        this.spotifyApi.setAccessToken(providerToken);
+
+        // Declare list to store tracks
+        List<TrackSimplified> tracks = new ArrayList<>();
+
+        // Try to execute spotify api to request recently listened to tracks
+        try {
+            // Grab first batch of recently listened to tracks
+            PagingCursorbased<PlayHistory> recentTracksPaging = this.spotifyApi
+                    .getCurrentUsersRecentlyPlayedTracks()
+                    .build()
+                    .execute();
+
+            // Append to tracks
+            Arrays.stream(recentTracksPaging.getItems())
+                    .map(PlayHistory::getTrack)
+                    .forEach(tracks::add);
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            logger.error("Error while enqueueing song for user", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify request", e);
+        }
+
+        // Restore client credentials access token
+        this.spotifyApi.setAccessToken(savedAccessToken);
+
+        return tracks;
     }
 
     private boolean tokenExpired() {
