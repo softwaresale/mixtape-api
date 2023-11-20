@@ -1,8 +1,0 @@
-
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          spotify-idp:
-            redirect-uri: http://auth.localhost:8081/login/oauth2/code/spotify-idp
