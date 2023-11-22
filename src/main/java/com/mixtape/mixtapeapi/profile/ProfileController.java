@@ -16,12 +16,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/profile")
 public class ProfileController extends AbstractRestController {
-    private final BlockedProfileService blockedProfileService;
     private final BlockedActionService blockedActionService;
 
-    public ProfileController(ProfileService profileService, BlockedProfileService blockedProfileService, BlockedActionService blockedActionService) {
+    public ProfileController(ProfileService profileService, BlockedActionService blockedActionService) {
         super(profileService);
-        this.blockedProfileService = blockedProfileService;
         this.blockedActionService = blockedActionService;
     }
 
@@ -40,13 +38,5 @@ public class ProfileController extends AbstractRestController {
     @PostMapping
     public Profile createNewProfile(@RequestBody Profile newProfile) {
         return profileService.saveProfile(newProfile);
-    }
-
-    @PostMapping("/{profileId}/block")
-    public boolean blockProfile(@PathVariable String profileId) {
-        Profile blocker = getAuthenticatedProfileOr404();
-        Profile blockee = resolveProfileOr404(profileId);
-
-        return blockedProfileService.blockProfile(blocker, blockee);
     }
 }

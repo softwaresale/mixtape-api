@@ -4,6 +4,9 @@ import com.mixtape.mixtapeapi.friendship.FriendshipService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class BlockedProfileService extends BaseBlockedService {
 
@@ -28,4 +31,13 @@ public class BlockedProfileService extends BaseBlockedService {
         return true;
     }
 
+    public List<Profile> getBlockedProfiles(Profile blocker) {
+        return blockedProfileRepository.findBlockedProfileByBlocker(blocker).stream()
+                .map(BlockedProfile::getBlockee)
+                .collect(Collectors.toList());
+    }
+
+    public boolean unblockProfile(Profile blocker, Profile blockee) {
+        return blockedProfileRepository.deleteBlockedProfileByBlockerAndBlockee(blocker, blockee);
+    }
 }

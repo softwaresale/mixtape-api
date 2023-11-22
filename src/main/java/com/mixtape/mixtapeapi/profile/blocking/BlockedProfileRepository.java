@@ -10,4 +10,5 @@ import java.util.List;
 public interface BlockedProfileRepository extends JpaRepository<BlockedProfile, String> {
     List<BlockedProfile> findBlockedProfileByBlocker(Profile blocker);
     boolean existsDistinctByBlockerAndBlockeeOrBlockeeAndBlocker(Profile blocker1, Profile blockee1, Profile blockee2, Profile blocker2);
+    boolean deleteBlockedProfileByBlockerAndBlockee(Profile blocker1, Profile blockee1);
 }

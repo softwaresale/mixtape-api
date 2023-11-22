@@ -1,7 +1,6 @@
 package com.mixtape.mixtapeapi.profile;
 
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
-import com.mixtape.mixtapeapi.profile.blocking.BlockedProfileService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,15 +32,13 @@ public class ProfileControllerTest {
     @Mock
     ProfileService mockProfileService;
     @Mock
-    BlockedProfileService mockBlockedProfileService;
-    @Mock
     BlockedActionService mockBlockedActionService;
 
     ProfileController profileController;
 
     @BeforeEach
     void setUp() {
-        profileController = new ProfileController(mockProfileService, mockBlockedProfileService, mockBlockedActionService);
+        profileController = new ProfileController(mockProfileService, mockBlockedActionService);
     }
 
     @Test
