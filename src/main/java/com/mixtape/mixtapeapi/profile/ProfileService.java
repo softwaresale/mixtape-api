@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.profile;
 
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -17,11 +18,9 @@ public class ProfileService {
     private static final Logger logger = LoggerFactory.getLogger(ProfileService.class);
 
     private final ProfileRepository profileRepository;
-    private final BlockedProfileRepository blockedProfileRepository;
 
-    public ProfileService(ProfileRepository profileRepository, BlockedProfileRepository blockedProfileRepository) {
+    public ProfileService(ProfileRepository profileRepository) {
         this.profileRepository = profileRepository;
-        this.blockedProfileRepository = blockedProfileRepository;
     }
 
     public Optional<Profile> findProfile(String id) {
@@ -67,16 +66,5 @@ public class ProfileService {
 
         Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
         return profileRepository.save(newProfile);
-    }
-
-    public boolean blockProfile(Profile blocker, Profile blockee) {
-        if (blockedProfileRepository.existsDistinctByBlockerAndBlockeeOrBlockeeAndBlocker(blocker, blockee, blocker, blockee)) {
-            return false;
-        }
-
-        BlockedProfile blockedProfile = new BlockedProfile(null, blocker, blockee);
-        blockedProfileRepository.save(blockedProfile);
-
-        return true;
     }
 }

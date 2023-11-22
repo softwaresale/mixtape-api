@@ -1,6 +1,6 @@
 package com.mixtape.spotifyauthserver.config;
 
-import com.mixtape.mixtapeapi.profile.BlockedProfileRepository;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedProfileRepository;
 import com.mixtape.mixtapeapi.profile.ProfileRepository;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -14,7 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 public class MixtapeDataConfig {
 
     @Bean
-    public ProfileService profileService(ProfileRepository repo, BlockedProfileRepository blockedProfileRepository) {
-        return new ProfileService(repo, blockedProfileRepository);
+    public ProfileService profileService(ProfileRepository repo) {
+        return new ProfileService(repo);
     }
 }

@@ -20,13 +20,12 @@ import static org.mockito.Mockito.*;
 public class ProfileServiceTest {
 
     @Mock ProfileRepository mockProfileRepository;
-    @Mock BlockedProfileRepository mockBlockProfileRepository;
 
     ProfileService profileService;
 
     @BeforeEach
     void beforeEach() {
-        profileService = new ProfileService(mockProfileRepository, mockBlockProfileRepository);
+        profileService = new ProfileService(mockProfileRepository);
     }
 
     @Test
@@ -68,28 +67,5 @@ public class ProfileServiceTest {
     void searchProfile_callsWithAFuzzyString() {
         profileService.findProfilesByDisplayNameFuzzySearch("user");
         verify(mockProfileRepository).searchProfilesByDisplayNameLikeIgnoreCase("%user%");
-    }
-
-    @Test
-    void blockProfile_blocksAProfile_whenNoProfileExists() {
-        Profile blocker = new Profile("user1", null, "user1", null);
-        Profile blockee = new Profile("user2", null, "user2", null);
-        when(mockBlockProfileRepository.existsDistinctByBlockerAndBlockeeOrBlockeeAndBlocker(blocker, blockee, blocker, blockee)).thenReturn(false);
-        boolean result = profileService.blockProfile(blocker, blockee);
-        assertThat(result).isTrue();
-        verify(mockBlockProfileRepository).save(assertArg(block -> {
-            assertThat(block.getBlocker()).isEqualTo(blocker);
-            assertThat(block.getBlockee()).isEqualTo(blockee);
-        }));
-    }
-
-    @Test
-    void blockProfile_doesNothing_whenAlreadyBlocked() {
-        Profile blocker = new Profile("user1", null, "user1", null);
-        Profile blockee = new Profile("user2", null, "user2", null);
-        when(mockBlockProfileRepository.existsDistinctByBlockerAndBlockeeOrBlockeeAndBlocker(blocker, blockee, blocker, blockee)).thenReturn(true);
-        boolean result = profileService.blockProfile(blocker, blockee);
-        assertThat(result).isFalse();
-        verify(mockBlockProfileRepository, never()).save(any());
     }
 }

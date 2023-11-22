@@ -1,5 +1,6 @@
-package com.mixtape.mixtapeapi.profile;
+package com.mixtape.mixtapeapi.profile.blocking;
 
+import com.mixtape.mixtapeapi.profile.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
