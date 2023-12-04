@@ -82,4 +82,9 @@ public abstract class AbstractRestController {
             return Optional.empty();
         }
     }
+
+    public String getProviderTokenOr500() {
+        return getProviderToken()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Current authenticated user does not have a provider token"));
+    }
 }
