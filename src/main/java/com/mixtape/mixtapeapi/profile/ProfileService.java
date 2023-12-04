@@ -1,6 +1,6 @@
 package com.mixtape.mixtapeapi.profile;
 
-import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
+import com.mixtape.mixtapeapi.profile.projections.SpotifyIdOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileService {
@@ -66,5 +67,11 @@ public class ProfileService {
 
         Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
         return profileRepository.save(newProfile);
+    }
+
+    public List<String> getSpotifyIDsForAllUsersExcept(String excluded) {
+        return this.profileRepository.getAllByIdIsNot(excluded).stream()
+                .map(SpotifyIdOnly::getSpotifyUID)
+                .collect(Collectors.toList());
     }
 }

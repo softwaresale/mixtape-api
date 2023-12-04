@@ -1,12 +1,10 @@
 package com.mixtape.mixtapeapi.profile;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.profile.projections.SpotifyIdOnly;
+import jakarta.persistence.*;
 
 @Entity
-public class Profile {
+public class Profile implements SpotifyIdOnly {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -33,6 +31,7 @@ public class Profile {
         this.id = id;
     }
 
+    @Override
     public String getSpotifyUID() {
         return spotifyUID;
     }
