@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.spotify.SpotifyService;
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import jakarta.transaction.Transactional;
@@ -24,13 +25,19 @@ public class MixtapeService {
     private final PlaylistService playlistService;
     private final TrackService trackService;
     private final NotificationService notificationService;
+    private final SpotifyService spotifyService;
 
-    public MixtapeService(MixtapeRepository mixtapeRepository, ReactionRepository reactionRepository, PlaylistService playlistService, TrackService trackService, NotificationService notificationService) {
+    public MixtapeService(MixtapeRepository mixtapeRepository,
+                          ReactionRepository reactionRepository,
+                          PlaylistService playlistService,
+                          TrackService trackService,
+                          NotificationService notificationService, SpotifyService spotifyService) {
         this.mixtapeRepository = mixtapeRepository;
         this.reactionRepository = reactionRepository;
         this.playlistService = playlistService;
         this.trackService = trackService;
         this.notificationService = notificationService;
+        this.spotifyService = spotifyService;
     }
 
     public Optional<Mixtape> findMixtape(String mixtapeId) {
@@ -199,5 +206,18 @@ public class MixtapeService {
     private Mixtape findExistingMixtape(String mixtapeId) {
         return findMixtape(mixtapeId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
+    }
+
+    public void enqueueMixtape(String mixtapeId, Profile enqueueingProfile, String providerToken) {
+        Mixtape mixtape = findMixtape(mixtapeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
+
+        spotifyService.enqueueSongs(providerToken, mixtape.getSongIDs());
+
+        // if the person that was sent the mixtape is enqueueing, then mark it as listened
+        if (!mixtape.getCreator().equals(enqueueingProfile)) {
+            mixtape.setListened(true);
+            mixtapeRepository.save(mixtape);
+        }
     }
 }

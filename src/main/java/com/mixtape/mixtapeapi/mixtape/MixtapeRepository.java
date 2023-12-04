@@ -14,6 +14,4 @@ public interface MixtapeRepository extends JpaRepository<Mixtape, String> {
     Optional<Mixtape> findById(@NonNull String id);
 
     List<Mixtape> findAllByPlaylistIdAndName(String id, String name);
-
-
 }

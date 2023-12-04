@@ -44,15 +44,17 @@ public class Mixtape {
     @OneToMany(cascade = CascadeType.REMOVE)
     private List<Reaction> reactions;
 
+    private boolean listened;
+
     public Mixtape() {
-        this("", "", "", LocalDateTime.now(), "", 0L, null, new ArrayList<>(), new ArrayList<>());
+        this("", "", "", LocalDateTime.now(), "", 0L, null, new ArrayList<>(), new ArrayList<>(), false);
     }
 
     public Mixtape(MixtapeDTO.Create createDTO) {
-        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs, new ArrayList<>());
+        this(null, null, createDTO.name, LocalDateTime.now(), createDTO.description, 0L, null, createDTO.songIDs, new ArrayList<>(), false);
     }
 
-    public Mixtape(String id, String playlistId, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs, List<Reaction> reactions) {
+    public Mixtape(String id, String playlistId, String name, LocalDateTime createdAt, String description, Long durationMS, Profile creator, List<String> songIDs, List<Reaction> reactions, boolean listened) {
         this.id = id;
         this.playlistId = playlistId;
         this.name = name;
@@ -62,6 +64,7 @@ public class Mixtape {
         this.creator = creator;
         this.songIDs = songIDs;
         this.reactions = reactions;
+        this.listened = listened;
     }
 
     public String getId() {
@@ -160,6 +163,14 @@ public class Mixtape {
         });
 
         this.reactions.add(reaction);
+    }
+
+    public boolean isListened() {
+        return listened;
+    }
+
+    public void setListened(boolean listened) {
+        this.listened = listened;
     }
 
     @Override
