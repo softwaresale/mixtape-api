@@ -78,6 +78,11 @@ public class ProdSpotifyService implements SpotifyService {
 
     @Override
     public List<String> checkFollowsAnyUsers(String userProviderToken, List<String> spotifyUserIDs) throws ResponseStatusException {
+
+        if (spotifyUserIDs.isEmpty()) {
+            return List.of();
+        }
+
         // Save the token state
         String savedAccessToken = this.spotifyApi.getAccessToken();
         this.spotifyApi.setAccessToken(userProviderToken);
