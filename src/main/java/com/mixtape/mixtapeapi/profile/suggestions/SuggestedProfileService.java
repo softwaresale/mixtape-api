@@ -76,4 +76,8 @@ public class SuggestedProfileService {
                 })
                 .toList();
     }
+
+    public void deleteSuggestionsBetweenUsers(Profile profile1, Profile profile2) {
+        this.repository.deleteAllBySuggestedAndSuggestionForOrSuggestionForAndSuggested(profile1, profile2, profile1, profile2);
+    }
 }
