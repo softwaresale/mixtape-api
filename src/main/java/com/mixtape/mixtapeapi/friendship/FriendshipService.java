@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.friendship;
 
+import com.mixtape.mixtapeapi.events.FriendshipProposedEvent;
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
@@ -7,6 +8,7 @@ import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import jakarta.transaction.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -17,15 +19,17 @@ import java.util.Optional;
 @Service
 public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
+    private final ApplicationEventPublisher eventPublisher;
     private final PlaylistService playlistService;
     private final NotificationService notificationService;
     private final BlockedActionService blockedActionService;
 
     public FriendshipService(FriendshipRepository friendshipRepository,
-                             PlaylistService playlistService,
+                             ApplicationEventPublisher eventPublisher, PlaylistService playlistService,
                              NotificationService notificationService,
                              BlockedActionService blockedActionService) {
         this.friendshipRepository = friendshipRepository;
+        this.eventPublisher = eventPublisher;
         this.playlistService = playlistService;
         this.notificationService = notificationService;
         this.blockedActionService = blockedActionService;
@@ -75,6 +79,9 @@ public class FriendshipService {
         // Create contents and notification for accepting or denying playlist
         String contents = String.format("%s wants to be friends with you", initiator.getDisplayName());
         notificationService.createNotificationFromTrigger(friendship.getId(), initiator, requestedTarget, contents, NotificationType.FRIENDSHIP, "");
+
+        // fire an event that we at least attempted a friendship, so remove the suggestion
+        eventPublisher.publishEvent(new FriendshipProposedEvent(this, friendship, requestedTarget));
 
         return friendship;
     }
