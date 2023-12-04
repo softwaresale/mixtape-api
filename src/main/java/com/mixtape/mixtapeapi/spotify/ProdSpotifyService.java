@@ -1,12 +1,14 @@
 package com.mixtape.mixtapeapi.spotify;
 
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
+import com.mixtape.mixtapeapi.util.ListUtils;
 import org.apache.hc.core5.http.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.miscellaneous.Device;
@@ -17,10 +19,7 @@ import se.michaelthelin.spotify.model_objects.specification.Track;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ProdSpotifyService implements SpotifyService {
@@ -75,6 +74,45 @@ public class ProdSpotifyService implements SpotifyService {
             logger.error("Failed to get mixtape duration", spotifyExe);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify network request", spotifyExe);
         }
+    }
+
+    @Override
+    public List<String> checkFollowsAnyUsers(String userProviderToken, List<String> spotifyUserIDs) throws ResponseStatusException {
+        // Save the token state
+        String savedAccessToken = this.spotifyApi.getAccessToken();
+        this.spotifyApi.setAccessToken(userProviderToken);
+
+        List<String> allFollowedUsers = new ArrayList<>();
+        List<List<String>> idPartitions = ListUtils.partition(spotifyUserIDs, 50);
+        for (List<String> part : idPartitions) {
+            List<String> checkedUsers = checkFollowsSet(part);
+            allFollowedUsers.addAll(checkedUsers);
+        }
+
+        this.spotifyApi.setAccessToken(savedAccessToken);
+
+        return allFollowedUsers;
+    }
+
+    private List<String> checkFollowsSet(List<String> userIDsSubset) {
+        Boolean[] results;
+        try {
+            results = spotifyApi.checkCurrentUserFollowsArtistsOrUsers(ModelObjectType.USER, userIDsSubset.toArray(String[]::new))
+                    .build()
+                    .execute();
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            logger.error("Failed to check if user follows other users", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to check if user follows other users", e);
+        }
+
+        List<String> followedUsers = new ArrayList<>();
+        for (int i = 0; i < userIDsSubset.size(); i++) {
+            if (results[i]) {
+                followedUsers.add(userIDsSubset.get(i));
+            }
+        }
+
+        return followedUsers;
     }
 
     private boolean tokenExpired() {

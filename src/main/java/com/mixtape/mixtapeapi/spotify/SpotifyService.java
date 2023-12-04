@@ -26,4 +26,13 @@ public interface SpotifyService {
     Duration getTracksDuration(String ...ids) throws ResponseStatusException;
 
     void enqueueSongs(String token, List<String> ids) throws ResponseStatusException;
+
+    /**
+     * Check if a user follows any of the users given by their IDs.
+     * @param userProviderToken Provider token of the user making the request
+     * @param spotifyUserIDs List of spotify user IDs to check
+     * @return A list of spotify user ids that the user follows
+     * @throws ResponseStatusException An HTTP response exception if there is an error
+     */
+    List<String> checkFollowsAnyUsers(String userProviderToken, List<String> spotifyUserIDs) throws ResponseStatusException;
 }
