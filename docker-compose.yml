@@ -25,7 +25,7 @@ services:
     networks:
       - backend
   api:
-    image: mixtape-api:0.0.1-SNAPSHOT
+    image: mixtape-api:1.2.3
     ports:
       - target: 8080
         published: 8080
@@ -41,7 +41,7 @@ services:
     networks:
       - backend
   auth-server:
-    image: spotify-auth-server:0.0.1-SNAPSHOT
+    image: spotify-auth-server:1.0.0
     ports:
       - target: 9000
         published: 9000

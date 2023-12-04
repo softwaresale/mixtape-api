@@ -1,8 +1,8 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://mixtape.cosucasfyf1s.us-east-2.rds.amazonaws.com:5432/mixtape
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+  # datasource:
+    # url: jdbc:postgresql://mixtape.cosucasfyf1s.us-east-2.rds.amazonaws.com:5432/mixtape
+    # username: ${DB_USERNAME}
+    # password: ${DB_PASSWORD}
   security:
     oauth2:
       client:
@@ -21,6 +21,8 @@ spring:
 mixtape:
   security:
     issuer-uri: https://auth.getmixtapeapplication.com
+  aws:
+    rds-secret-id: rds!db-6f51bd14-4f86-40c7-8e33-2a21b081cff2
 
 logging:
   level:

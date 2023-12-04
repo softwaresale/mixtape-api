@@ -1,21 +1,21 @@
 package com.mixtape.mixtapeapi.mixtape;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.spotify.SpotifyService;
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import com.mixtape.mixtapeapi.tracks.TrackService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.IOException;
-import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class MixtapeService {
@@ -25,13 +25,19 @@ public class MixtapeService {
     private final PlaylistService playlistService;
     private final TrackService trackService;
     private final NotificationService notificationService;
+    private final SpotifyService spotifyService;
 
-    public MixtapeService(MixtapeRepository mixtapeRepository, ReactionRepository reactionRepository, PlaylistService playlistService, TrackService trackService, NotificationService notificationService) {
+    public MixtapeService(MixtapeRepository mixtapeRepository,
+                          ReactionRepository reactionRepository,
+                          PlaylistService playlistService,
+                          TrackService trackService,
+                          NotificationService notificationService, SpotifyService spotifyService) {
         this.mixtapeRepository = mixtapeRepository;
         this.reactionRepository = reactionRepository;
         this.playlistService = playlistService;
         this.trackService = trackService;
         this.notificationService = notificationService;
+        this.spotifyService = spotifyService;
     }
 
     public Optional<Mixtape> findMixtape(String mixtapeId) {
@@ -47,25 +53,22 @@ public class MixtapeService {
         return Optional.of(mixtape);
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylist(Profile profile, String playlistId) throws IOException {
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
-        return playlist.getMixtapes();
+    public List<Mixtape> findAllMixtapesForPlaylist(Profile profile, String playlistId) {
+        // Grab playlist from profile and return mixtapes
+        return findExistingPlaylistForProfile(profile, playlistId).getMixtapes();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByTitle(Profile profile, String playlistId, String title) throws IOException {
+    public List<Mixtape> findAllMixtapesForPlaylistByTitle(Profile profile, String playlistId, String title) {
         // Verify profile has playlist
-        playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+        findExistingPlaylistForProfile(profile, playlistId);
 
         // Returns mixtapes that have same title as given title
-        return trackService.inflateMixtapes(mixtapeRepository
-                .findAllByPlaylistIDAndName(playlistId, title));
+        return trackService.inflateMixtapes(mixtapeRepository.findAllByPlaylistIdAndName(playlistId, title));
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistBySongName(Profile profile, String playlistId, String songName) throws IOException {
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+    public List<Mixtape> findAllMixtapesForPlaylistBySongName(Profile profile, String playlistId, String songName) {
+        // Grab playlist for profile
+        Playlist playlist = findExistingPlaylistForProfile(profile, playlistId);
 
         // Returns mixtapes that have any songs with same name as songName
         return playlist
@@ -76,12 +79,12 @@ public class MixtapeService {
                         .stream()
                         .map(TrackInfo::getName)
                         .anyMatch(songName::equals))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByArtistName(Profile profile, String playlistId, String artistName) throws IOException {
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+    public List<Mixtape> findAllMixtapesForPlaylistByArtistName(Profile profile, String playlistId, String artistName) {
+        // Grab playlist for profile
+        Playlist playlist = findExistingPlaylistForProfile(profile, playlistId);
 
         // Returns mixtapes that have any artists with same name as artistName
         return playlist
@@ -93,12 +96,12 @@ public class MixtapeService {
                         .map(TrackInfo::getArtistNames)
                         .flatMap(Collection::stream)
                         .anyMatch(artistName::equals))
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    public List<Mixtape> findAllMixtapesForPlaylistByAlbumName(Profile profile, String playlistId, String albumName) throws IOException {
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Playlist %s does not exist", playlistId)));
+    public List<Mixtape> findAllMixtapesForPlaylistByAlbumName(Profile profile, String playlistId, String albumName) {
+        // Grab playlist for profile
+        Playlist playlist = findExistingPlaylistForProfile(profile, playlistId);
 
         // Returns mixtapes that have any albums with same name as albumName
         return playlist
@@ -109,7 +112,13 @@ public class MixtapeService {
                         .stream()
                         .map(TrackInfo::getAlbumName)
                         .anyMatch(albumName::equals))
-                .collect(Collectors.toList());
+                .toList();
+    }
+
+    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) {
+        return findMixtape(mixtapeId)
+                .map(Mixtape::getReactions)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
     }
 
     public Mixtape createMixtapeForPlaylist(Profile creator, String playlistId, Mixtape newMixtape) {
@@ -119,50 +128,33 @@ public class MixtapeService {
 
         // Add to playlist and set items
         playlist.addMixtape(newMixtape);
-        newMixtape.setPlaylistID(playlist.getId());
+        newMixtape.setPlaylistId(playlist.getId());
         newMixtape.setCreator(creator);
-        Duration mixtapeDuration = trackService.getMixtapeDuration(newMixtape);
-        newMixtape.setDurationMS(mixtapeDuration.toMillis());
+        newMixtape.setDurationMS(trackService
+                .getMixtapeDuration(newMixtape)
+                .toMillis());
 
         // Save mixtape
-        Mixtape savedMixtape = mixtapeRepository.save(newMixtape);
+        Mixtape mixtape = mixtapeRepository.save(newMixtape);
 
-        // Save new playlist
+        // Update playlist
         playlistService.savePlaylist(playlist);
 
-        // Create notification
-        notificationService.createNotificationFromMixtape(savedMixtape, playlist.getTarget(), playlist.getName());
+        // Grab target of notification
+        Profile notificationTarget = playlist.getInitiator().equals(creator)
+                ? playlist.getTarget() : playlist.getInitiator();
 
-        // inflate
-        savedMixtape = trackService.inflateMixtape(savedMixtape);
-        return savedMixtape;
-    }
+        // Create contents and notification
+        String contents = String.format("%s created a mixtape %s for your shared playlist %s", creator.getDisplayName(), mixtape.getName(), playlist.getName());
+        notificationService.createNotificationFromTrigger(mixtape.getId(), creator, notificationTarget, contents, NotificationType.MIXTAPE, playlistId);
 
-    public void removeMixtape(Profile profile, String playlistId, String mixtapeId) throws IOException {
-        // Check playlist exists in profile
-        Playlist playlist = playlistService.findPlaylistForProfile(profile, playlistId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Profile does not own given playlist"));
-
-        // Check mixtape exists
-        Mixtape mixtape = findMixtape(mixtapeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
-
-        // Check playlist contains mixtape
-        if (!playlist.getMixtapes().contains(mixtape)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape is not part of given playlist");
-        }
-
-        // Remove the other side of the relationship
-        playlist.getMixtapes().remove(mixtape);
-        playlistService.savePlaylist(playlist);
-
-        // Delete mixtape
-        mixtapeRepository.delete(mixtape);
+        // Return inflated mixtape with songs
+        return trackService.inflateMixtape(mixtape);
     }
 
     public Mixtape createOrUpdateReactionForMixtape(String mixtapeId, Profile reactingUser, ReactionType reactionType) {
-        Mixtape mixtape = findMixtape(mixtapeId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
+        // Grab mixtape
+        Mixtape mixtape = findExistingMixtape(mixtapeId);
 
         // This exact thing already exists, so do nothing
         if (reactionRepository.existsByReactorAndMixtapeAndReactionType(reactingUser, mixtape, reactionType)) {
@@ -182,9 +174,50 @@ public class MixtapeService {
         return mixtapeRepository.save(mixtape);
     }
 
-    public List<Reaction> findAllReactionsForMixtape(String playlistId, String mixtapeId) {
+    @Transactional
+    public void removeMixtape(Profile profile, String playlistId, String mixtapeId) {
+        // Check playlist exists in profile
+        Playlist playlist = findExistingPlaylistForProfile(profile, playlistId);
+
+        // Check mixtape exists
+        Mixtape mixtape = findExistingMixtape(mixtapeId);
+
+        // Check playlist contains mixtape
+        if (!playlist.getMixtapes().contains(mixtape)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mixtape is not part of given playlist");
+        }
+
+        // Remove the other side of the relationship
+        playlist.getMixtapes().remove(mixtape);
+        playlistService.savePlaylist(playlist);
+
+        // Delete notification of mixtape
+        notificationService.deleteNotificationOfMixtape(mixtape);
+
+        // Delete mixtape
+        mixtapeRepository.delete(mixtape);
+    }
+
+    private Playlist findExistingPlaylistForProfile(Profile profile, String playlistId) {
+        return playlistService.findPlaylistForProfile(profile, playlistId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Playlist for this profile not found"));
+    }
+
+    private Mixtape findExistingMixtape(String mixtapeId) {
         return findMixtape(mixtapeId)
-                .map(Mixtape::getReactions)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested mixtape does not exist"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
+    }
+
+    public void enqueueMixtape(String mixtapeId, Profile enqueueingProfile, String providerToken) {
+        Mixtape mixtape = findMixtape(mixtapeId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Mixtape does not exist"));
+
+        spotifyService.enqueueSongs(providerToken, mixtape.getSongIDs());
+
+        // if the person that was sent the mixtape is enqueueing, then mark it as listened
+        if (!mixtape.getCreator().equals(enqueueingProfile)) {
+            mixtape.setListened(true);
+            mixtapeRepository.save(mixtape);
+        }
     }
 }

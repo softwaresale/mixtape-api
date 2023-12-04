@@ -1,10 +1,5 @@
 
 spring:
-  datasource:
-    url: jdbc:postgresql://mixtape.cosucasfyf1s.us-east-2.rds.amazonaws.com:5432/mixtape
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
   security:
     oauth2:
       resourceserver:

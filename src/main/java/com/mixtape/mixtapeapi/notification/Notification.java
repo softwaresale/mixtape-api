@@ -17,6 +17,10 @@ public class Notification {
     private String id;
 
     @ManyToOne
+    @JoinColumn(name="initiator_id")
+    private Profile initiator;
+
+    @ManyToOne
     @JoinColumn(name="target_id")
     private Profile target;
 
@@ -25,18 +29,32 @@ public class Notification {
     private NotificationType notificationType;
 
     private String externalId;
+    private String routingPath;
 
-    public Notification(String id, Profile target, String contents, NotificationType notificationType, String externalId) {
+    public Notification(String id, Profile initiator, Profile target, String contents, NotificationType notificationType, String externalId, String routingPath) {
         this.id = id;
+        this.initiator = initiator;
         this.target = target;
         this.contents = contents;
         this.notificationType = notificationType;
         this.externalId = externalId;
+        this.routingPath = routingPath;
     }
 
-
     public Notification() {
-        this("", null, "", NotificationType.PLAYLIST, "");
+        this("", null, null, "", NotificationType.PLAYLIST, "", "");
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("Notification{");
+        sb.append("id='").append(id).append('\'');
+        sb.append(", target=").append(target);
+        sb.append(", contents='").append(contents).append('\'');
+        sb.append(", notificationType=").append(notificationType);
+        sb.append(", externalId='").append(externalId).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     public String getId() {
@@ -45,6 +63,14 @@ public class Notification {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public Profile getInitiator() {
+        return initiator;
+    }
+
+    public void setInitiator(Profile initiator) {
+        this.initiator = initiator;
     }
 
     public Profile getTarget() {
@@ -75,19 +101,15 @@ public class Notification {
         return externalId;
     }
 
-    public void setExternalId(String external_id) {
-        this.externalId = external_id;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Notification{");
-        sb.append("id='").append(id).append('\'');
-        sb.append(", target=").append(target);
-        sb.append(", contents='").append(contents).append('\'');
-        sb.append(", notificationType=").append(notificationType);
-        sb.append(", externalId='").append(externalId).append('\'');
-        sb.append('}');
-        return sb.toString();
+    public String getRoutingPath() {
+        return routingPath;
+    }
+
+    public void setRoutingPath(String routingPath) {
+        this.routingPath = routingPath;
     }
 }

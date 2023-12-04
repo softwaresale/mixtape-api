@@ -3,7 +3,14 @@ package com.mixtape.mixtapeapi.playlist;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.profile.Profile;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,12 +114,12 @@ public class Playlist {
     }
 
     public void setMixtapes(List<Mixtape> mixtapes) {
-        mixtapes.forEach(mixtape -> mixtape.setPlaylistID(this.id));
+        mixtapes.forEach(mixtape -> mixtape.setPlaylistId(this.id));
         this.mixtapes = mixtapes;
     }
 
     public void addMixtape(Mixtape mixtape) {
-        mixtape.setPlaylistID(this.id);
+        mixtape.setPlaylistId(this.id);
         this.mixtapes.add(mixtape);
     }
 

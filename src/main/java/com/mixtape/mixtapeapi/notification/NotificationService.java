@@ -1,6 +1,5 @@
 package com.mixtape.mixtapeapi.notification;
 
-import com.mixtape.mixtapeapi.friendship.Friendship;
 import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.profile.Profile;
@@ -9,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 @Service
 public class NotificationService {
@@ -18,59 +19,57 @@ public class NotificationService {
         this.notificationRepository = notificationRepository;
     }
 
-    public List<Notification> findAllNotificationsForProfile(Profile profile) {
-        return notificationRepository.findAllByTarget(profile);
+    public boolean friendshipNotificationExistsByInitiatorAndTarget(Profile initiator, Profile target) {
+        return notificationRepository.existsByInitiatorAndTargetAndNotificationType(initiator, target, NotificationType.FRIENDSHIP);
     }
 
-    public void createNotificationFromPlaylist(Playlist playlist, Profile target) {
-        // Create contents for notification
-        String contents = String.format("%s wants to invite you to their playlist %s", playlist.getInitiator().getDisplayName(), playlist.getName());
+    public Optional<Notification> findPlaylistNotification(String playlistId) {
+        return notificationRepository.findByExternalId(playlistId);
+    }
 
+    public List<Notification> findAllNotificationsForTarget(Profile target) {
+        return notificationRepository.findAllByTarget(target);
+    }
+
+    public List<Notification> findAllNotificationByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        return Stream.concat(
+                notificationRepository.findAllByInitiatorAndTarget(firstProfile, secondProfile).stream(),
+                notificationRepository.findAllByInitiatorAndTarget(secondProfile, firstProfile).stream()
+        ).toList();
+    }
+
+    public void createNotificationFromTrigger(String triggerId, Profile initiator, Profile target, String contents, NotificationType type, String routingPath) {
         // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.PLAYLIST, playlist.getId());
+        Notification notification = new Notification(null, initiator, target, contents, type, triggerId, routingPath);
+
+        // TODO: External id for mixtape notifications?
 
         // Save to repository
         notificationRepository.save(notification);
     }
 
-    public void createNotificationFromFriendship(Friendship friendship, Profile target) {
-        // Create contents for notification
-        String contents = String.format("%s wants to be friends with you", friendship.getInitiator().getDisplayName());
-
-        // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.FRIENDSHIP, friendship.getId());
-
-        // Save to repository
-        notificationRepository.save(notification);
-
-    }
-
-    public void createNotificationFromMixtape(Mixtape mixtape, Profile target, String playlistName) {
-        // Create contents for notification
-        String contents = String.format("%s added the mixtape %s to your shared playlist %s", mixtape.getCreator().getDisplayName(), mixtape.getName(), playlistName);
-
-        // Create notification
-        Notification notification = new Notification("", target, contents, NotificationType.MIXTAPE, mixtape.getId());
-
-        // Save to repository
-        notificationRepository.save(notification);
-    }
-
-    public void deleteNotificationFromPlaylist(Playlist playlist, Profile target) {
-        // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternalId(target, playlist.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This playlist was not for given profile"));
+    public void deleteNotificationByTargetAndExternalId(Profile target, String externalId) {
+        // Check if target and externalId have notification
+        notificationRepository.findByTargetAndExternalId(target, externalId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "External id does not match a notification of your profile"));
 
         // Delete notification
-        notificationRepository.deleteByTargetAndExternalId(target, playlist.getId());
+        notificationRepository.deleteByTargetAndExternalId(target, externalId);
     }
 
-    public void deleteNotificationFromFriendship(Friendship friendship, Profile target) {
-        // Check if target was invited to playlist
-        notificationRepository.findByTargetAndExternalId(target, friendship.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "This friendship was not for given profile"));
+    public void deleteNotificationsByBothProfiles(Profile firstProfile, Profile secondProfile) {
+        // Grab all notifications
+        notificationRepository.deleteAll(findAllNotificationByBothProfiles(firstProfile, secondProfile));
+    }
 
-        // Delete notification
-        notificationRepository.deleteByTargetAndExternalId(target, friendship.getId());
+    public void deleteNotificationsOfMixtapes(Playlist playlist) {
+        // For each mixtape, delete if within database
+        playlist
+                .getMixtapes()
+                .forEach(this::deleteNotificationOfMixtape);
+    }
+
+    public void deleteNotificationOfMixtape(Mixtape mixtape) {
+        notificationRepository.deleteByExternalId(mixtape.getId());
     }
 }

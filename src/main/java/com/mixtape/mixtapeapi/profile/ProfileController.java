@@ -1,6 +1,8 @@
 package com.mixtape.mixtapeapi.profile;
 
 import com.mixtape.mixtapeapi.AbstractRestController;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedProfileService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,23 +16,27 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/profile")
 public class ProfileController extends AbstractRestController {
+    private final BlockedActionService blockedActionService;
 
-    public ProfileController(ProfileService profileService) {
+    public ProfileController(ProfileService profileService, BlockedActionService blockedActionService) {
         super(profileService);
-    }
-
-    @PostMapping
-    public Profile createNewProfile(@RequestBody Profile newProfile) {
-        return profileService.saveProfile(newProfile);
-    }
-
-    @GetMapping
-    public List<Profile> search(@RequestParam("displayName") String searchDisplayName) {
-        return profileService.searchProfilesByDisplayName(searchDisplayName);
+        this.blockedActionService = blockedActionService;
     }
 
     @GetMapping("/{profileId}")
     public Profile getProfile(@PathVariable String profileId) {
         return resolveProfileOr404(profileId);
+    }
+
+    @GetMapping
+    public List<Profile> getProfilesByDisplayNameFuzzy(@RequestParam("displayName") String searchDisplayName) {
+        Profile authenticatedUser = getAuthenticatedProfileOr404();
+        List<Profile> allResults = profileService.findProfilesByDisplayNameFuzzySearch(searchDisplayName);
+        return blockedActionService.filterProfilesByBlocked(authenticatedUser, allResults);
+    }
+
+    @PostMapping
+    public Profile createNewProfile(@RequestBody Profile newProfile) {
+        return profileService.saveProfile(newProfile);
     }
 }

@@ -1,20 +1,25 @@
 package com.mixtape.mixtapeapi.friendship;
 
 import com.mixtape.mixtapeapi.notification.NotificationService;
+import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,12 +41,14 @@ public class FriendshipServiceTest {
 
     @Mock
     NotificationService mockNotificationService;
+    @Mock
+    BlockedActionService mockBlockedActionService;
 
     FriendshipService friendshipService;
 
     @BeforeEach
     void setUp() {
-        friendshipService = new FriendshipService(mockRepository, mockPlaylistService, mockNotificationService);
+        friendshipService = new FriendshipService(mockRepository, mockPlaylistService, mockNotificationService, mockBlockedActionService);
     }
 
     @Test
@@ -64,12 +71,22 @@ public class FriendshipServiceTest {
     void createFriendship_createsFriendshipInvitation_whenGoodInput() {
 
         when(mockRepository.save(any())).then((Answer<Friendship>) answer -> (Friendship) answer.getArguments()[0]);
+        when(mockBlockedActionService.isBlockedSymmetrical(mockProfiles.get(0), mockProfiles.get(1))).thenReturn(false);
 
         Friendship newFriendship = friendshipService.createFriendship(mockProfiles.get(0), mockProfiles.get(1));
 
         assertThat(newFriendship.getInitiator()).isEqualTo(mockProfiles.get(0));
         assertThat(newFriendship.getTarget()).isNull();
-        verify(mockNotificationService).createNotificationFromFriendship(newFriendship, mockProfiles.get(1));
+        verify(mockNotificationService).createNotificationFromTrigger(eq(null), eq(mockProfiles.get(0)), eq(mockProfiles.get(1)), eq("Charlie wants to be friends with you"), eq(NotificationType.FRIENDSHIP), eq(""));
+    }
+
+    @Test
+    void createFriendship_fails_whenUsersAreBlocked() {
+        when(mockBlockedActionService.isBlockedSymmetrical(mockProfiles.get(0), mockProfiles.get(1))).thenReturn(true);
+        assertThatThrownBy(() -> {
+            friendshipService.createFriendship(mockProfiles.get(0), mockProfiles.get(1));
+        })
+                .isInstanceOf(ResponseStatusException.class);
     }
 
     @Test
@@ -79,9 +96,9 @@ public class FriendshipServiceTest {
         when(mockRepository.findByIdAndInitiatorOrTarget(friendship.getId(), mockProfiles.get(0), mockProfiles.get(0)))
                 .thenReturn(Optional.of(friendship));
 
-        friendshipService.removeFriendship(mockProfiles.get(0), friendship.getId());
+        friendshipService.removeFriendshipByFriendship(mockProfiles.get(0), friendship.getId());
 
-        verify(mockPlaylistService).removePlaylistsByInitiatorAndTarget(friendship.getInitiator(), friendship.getTarget());
+        verify(mockPlaylistService).removePlaylistsByBothProfiles(friendship.getInitiator(), friendship.getTarget());
         verify(mockRepository).delete(friendship);
     }
 }
