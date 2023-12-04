@@ -7,10 +7,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,8 +66,8 @@ public class ProfileService {
         return profileRepository.save(newProfile);
     }
 
-    public List<String> getSpotifyIDsForAllUsersExcept(String excluded) {
-        return this.profileRepository.getAllByIdIsNot(excluded).stream()
+    public List<String> getSpotifyIDsForAllUsersExcept(Set<String> excluded) {
+        return this.profileRepository.getAllByIdIsNotIn(excluded).stream()
                 .map(SpotifyIdOnly::getSpotifyUID)
                 .collect(Collectors.toList());
     }
