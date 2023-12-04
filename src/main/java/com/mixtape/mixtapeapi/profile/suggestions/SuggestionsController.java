@@ -22,7 +22,8 @@ public class SuggestionsController extends AbstractRestController {
     @GetMapping
     public List<Profile> getSuggestedUsers(@PathVariable String profileId) {
         Profile callingProfile = resolveProfileOr404(profileId);
-        return suggestedProfileService.getSuggestedProfiles(callingProfile);
+        String providerToken = getProviderTokenOr500();
+        return suggestedProfileService.computeAndGetSuggestedProfiles(callingProfile, providerToken);
     }
 
     @PostMapping("/compute")
