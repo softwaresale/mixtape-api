@@ -1,5 +1,6 @@
 package com.mixtape.mixtapeapi.profile;
 
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;

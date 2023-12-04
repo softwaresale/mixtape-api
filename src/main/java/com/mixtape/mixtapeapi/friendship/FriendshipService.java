@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,16 @@ public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final PlaylistService playlistService;
     private final NotificationService notificationService;
+    private final BlockedActionService blockedActionService;
 
-    public FriendshipService(FriendshipRepository friendshipRepository, PlaylistService playlistService, NotificationService notificationService) {
+    public FriendshipService(FriendshipRepository friendshipRepository,
+                             PlaylistService playlistService,
+                             NotificationService notificationService,
+                             BlockedActionService blockedActionService) {
         this.friendshipRepository = friendshipRepository;
         this.playlistService = playlistService;
         this.notificationService = notificationService;
+        this.blockedActionService = blockedActionService;
     }
 
     public Optional<Friendship> findFriendship(String friendshipId) {
@@ -45,7 +51,11 @@ public class FriendshipService {
         // Check if full friendship already exists
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
                 friendshipRepository.existsByInitiatorAndTarget(requestedTarget, initiator)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(460), "Friendship between these two already exists");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Friendship between these two already exists");
+        }
+
+        if (blockedActionService.isBlockedSymmetrical(initiator, requestedTarget)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Profiles are blocked");
         }
 
         // Check if partial friendship already exists that initiator has created

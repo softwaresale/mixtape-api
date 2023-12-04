@@ -3,8 +3,11 @@ package com.mixtape.mixtapeapi.playlist;
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,16 +20,21 @@ import java.util.stream.Stream;
 
 @Service
 public class PlaylistService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PlaylistService.class);
+
     private final PlaylistRepository playlistRepository;
     private final NotificationService notificationService;
     private final TrackService trackService;
     private final PlaylistPicUploadService pictureUploadService;
+    private final BlockedActionService blockedActionService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService) {
+    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService, BlockedActionService blockedActionService) {
         this.playlistRepository = playlistRepository;
         this.notificationService = notificationService;
         this.trackService = trackService;
         this.pictureUploadService = pictureUploadService;
+        this.blockedActionService = blockedActionService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -69,6 +77,12 @@ public class PlaylistService {
     }
 
     public Playlist createPlaylist(Profile initiator, PlaylistDTO.Create newPlaylistDTO, Profile requestedTarget) {
+        // check blocked, bad request
+        if (this.blockedActionService.isBlockedSymmetrical(initiator, requestedTarget)) {
+            logger.error("Profiles {} and {} are blocked, so cannot create playlist", initiator, requestedTarget);
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot create playlist due to blockage");
+        }
+        
         // Create partial playlist
         Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
         playlist = savePlaylist(playlist);
