@@ -1,7 +1,6 @@
 package com.mixtape.mixtapeapi.settings;
 
 import com.mixtape.mixtapeapi.profile.Profile;
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,20 +22,20 @@ public class Settings {
     @JoinColumn(name = "profileId")
     private Profile profile;
 
-    private boolean hasProfilePermission;
+    private boolean isPermissionNeededForPlaylists;
 
     @OneToMany
     @JoinColumn(name = "friendIdsWithPermission")
     private List<Profile> friendsWithPermission;
 
     public Settings() {
-        this("", null, false, Collections.emptyList());
+        this(null, null, false, Collections.emptyList());
     }
 
-    public Settings(String id, Profile profile, boolean hasProfilePermission, List<Profile> friendsWithPermission) {
+    public Settings(String id, Profile profile, boolean isPermissionNeededForPlaylists, List<Profile> friendsWithPermission) {
         this.id = id;
         this.profile = profile;
-        this.hasProfilePermission = hasProfilePermission;
+        this.isPermissionNeededForPlaylists = isPermissionNeededForPlaylists;
         this.friendsWithPermission = friendsWithPermission;
     }
 
@@ -56,12 +55,12 @@ public class Settings {
         this.profile = profile;
     }
 
-    public boolean isHasProfilePermission() {
-        return hasProfilePermission;
+    public boolean isIsPermissionNeededForPlaylists() {
+        return isPermissionNeededForPlaylists;
     }
 
-    public void setHasProfilePermission(boolean hasProfilePermission) {
-        this.hasProfilePermission = hasProfilePermission;
+    public void setIsPermissionNeededForPlaylists(boolean hasProfilePermission) {
+        this.isPermissionNeededForPlaylists = hasProfilePermission;
     }
 
     public List<Profile> getFriendsWithPermission() {
