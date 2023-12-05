@@ -4,11 +4,14 @@ import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
+import com.mixtape.mixtapeapi.settings.Settings;
+import com.mixtape.mixtapeapi.settings.SettingsService;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -28,13 +32,15 @@ public class PlaylistService {
     private final TrackService trackService;
     private final PlaylistPicUploadService pictureUploadService;
     private final BlockedActionService blockedActionService;
+    private final SettingsService settingsService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService, BlockedActionService blockedActionService) {
+    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService, BlockedActionService blockedActionService, SettingsService settingsService) {
         this.playlistRepository = playlistRepository;
         this.notificationService = notificationService;
         this.trackService = trackService;
         this.pictureUploadService = pictureUploadService;
         this.blockedActionService = blockedActionService;
+        this.settingsService = settingsService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -81,6 +87,18 @@ public class PlaylistService {
         if (this.blockedActionService.isBlockedSymmetrical(initiator, requestedTarget)) {
             logger.error("Profiles {} and {} are blocked, so cannot create playlist", initiator, requestedTarget);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot create playlist due to blockage");
+        }
+
+        // Grab settings for profile
+        Settings settings = settingsService.findSettingsForProfile(requestedTarget);
+
+        // Check if acceptance and notification is not needed
+        if (!settings.isPermissionNeededForPlaylists() || settings.getFriendsWithPermission().contains(initiator)) {
+            // Create full playlist
+            Playlist playlist = new Playlist(null, null, newPlaylistDTO.name, initiator, requestedTarget, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
+
+            // Save playlist and return
+            return savePlaylist(playlist);
         }
         
         // Create partial playlist

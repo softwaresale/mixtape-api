@@ -18,12 +18,16 @@ public class SettingsService {
         this.friendshipService = friendshipService;
     }
 
+    public Settings findSettingsForProfile(Profile profile) {
+        return getOrCreateSettings(profile);
+    }
+
     public Settings updatePermissionForProfile(Profile profile, boolean isPermissionNeededForPlaylists) {
         // Grab settings
         Settings settings = getOrCreateSettings(profile);
 
         // Set permission
-        settings.setIsPermissionNeededForPlaylists(isPermissionNeededForPlaylists);
+        settings.setPermissionNeededForPlaylists(isPermissionNeededForPlaylists);
 
         // Save and return
         return settingsRepository.save(settings);

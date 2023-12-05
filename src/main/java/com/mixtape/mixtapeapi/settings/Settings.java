@@ -22,20 +22,20 @@ public class Settings {
     @JoinColumn(name = "profileId")
     private Profile profile;
 
-    private boolean isPermissionNeededForPlaylists;
+    private boolean permissionNeededForPlaylists;
 
     @OneToMany
     @JoinColumn(name = "friendIdsWithPermission")
     private List<Profile> friendsWithPermission;
 
     public Settings() {
-        this(null, null, false, Collections.emptyList());
+        this(null, null, true, Collections.emptyList());
     }
 
-    public Settings(String id, Profile profile, boolean isPermissionNeededForPlaylists, List<Profile> friendsWithPermission) {
+    public Settings(String id, Profile profile, boolean permissionNeededForPlaylists, List<Profile> friendsWithPermission) {
         this.id = id;
         this.profile = profile;
-        this.isPermissionNeededForPlaylists = isPermissionNeededForPlaylists;
+        this.permissionNeededForPlaylists = permissionNeededForPlaylists;
         this.friendsWithPermission = friendsWithPermission;
     }
 
@@ -55,12 +55,12 @@ public class Settings {
         this.profile = profile;
     }
 
-    public boolean isIsPermissionNeededForPlaylists() {
-        return isPermissionNeededForPlaylists;
+    public boolean isPermissionNeededForPlaylists() {
+        return permissionNeededForPlaylists;
     }
 
-    public void setIsPermissionNeededForPlaylists(boolean hasProfilePermission) {
-        this.isPermissionNeededForPlaylists = hasProfilePermission;
+    public void setPermissionNeededForPlaylists(boolean permissionNeededForPlaylists) {
+        this.permissionNeededForPlaylists = permissionNeededForPlaylists;
     }
 
     public List<Profile> getFriendsWithPermission() {
