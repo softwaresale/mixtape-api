@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -35,6 +36,8 @@ public class FriendshipServiceTest {
 
     @Mock
     FriendshipRepository mockRepository;
+    @Mock
+    ApplicationEventPublisher mockEventPublisher;
 
     @Mock
     PlaylistService mockPlaylistService;
@@ -48,7 +51,7 @@ public class FriendshipServiceTest {
 
     @BeforeEach
     void setUp() {
-        friendshipService = new FriendshipService(mockRepository, mockPlaylistService, mockNotificationService, mockBlockedActionService);
+        friendshipService = new FriendshipService(mockRepository, mockEventPublisher, mockPlaylistService, mockNotificationService, mockBlockedActionService);
     }
 
     @Test
