@@ -23,10 +23,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ProfileControllerTest {
     List<Profile> mockProfiles = List.of(
-            new Profile("0", null, "Charlie", null),
-            new Profile("1", null, "Ish", null),
-            new Profile("2", null, "Alisa", null),
-            new Profile("3", null, "Joey", null)
+            new Profile("0", null, "Charlie", null, false),
+            new Profile("1", null, "Ish", null, false),
+            new Profile("2", null, "Alisa", null, false),
+            new Profile("3", null, "Joey", null, false)
     );
 
     @Mock

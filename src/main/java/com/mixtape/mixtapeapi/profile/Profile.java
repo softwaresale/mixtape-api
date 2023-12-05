@@ -12,15 +12,22 @@ public class Profile implements SpotifyIdOnly {
     private String spotifyUID;
     private String displayName;
     private String profilePicURL;
+    private Boolean onboarded;
 
     public Profile() {
+        this(null, null, null, null, false);
     }
 
     public Profile(String id, String spotifyUID, String displayName, String profilePicURL) {
+        this(id, spotifyUID, displayName, profilePicURL, false);
+    }
+
+    public Profile(String id, String spotifyUID, String displayName, String profilePicURL, boolean onboarded) {
         this.id = id;
         this.spotifyUID = spotifyUID;
         this.displayName = displayName;
         this.profilePicURL = profilePicURL;
+        this.onboarded = onboarded;
     }
 
     public String getId() {
@@ -54,6 +61,14 @@ public class Profile implements SpotifyIdOnly {
 
     public void setProfilePicURL(String profilePicURL) {
         this.profilePicURL = profilePicURL;
+    }
+
+    public Boolean getOnboarded() {
+        return onboarded;
+    }
+
+    public void setOnboarded(Boolean onboarded) {
+        this.onboarded = onboarded;
     }
 
     @Override
