@@ -21,4 +21,13 @@ public class FriendshipProposedEvent extends ApplicationEvent {
     public Profile getRequestedProfile() {
         return requestedProfile;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("FriendshipProposedEvent{");
+        sb.append("friendship=").append(friendship);
+        sb.append(", requestedProfile=").append(requestedProfile);
+        sb.append('}');
+        return sb.toString();
+    }
 }
