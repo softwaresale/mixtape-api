@@ -11,7 +11,6 @@ import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -19,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 @Service
@@ -69,11 +67,11 @@ public class PlaylistService {
 
     public List<Playlist> findPendingPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
         return Stream.of(
-                playlistRepository.findByInitiatorAndTargetIsNull(initiator),
-                playlistRepository.findByTargetAndInitiatorIsNull(initiator),
-                playlistRepository.findByInitiatorAndTargetIsNull(target),
-                playlistRepository.findByTargetAndInitiatorIsNull(target)
-        )
+                        playlistRepository.findByInitiatorAndTargetIsNull(initiator),
+                        playlistRepository.findByTargetAndInitiatorIsNull(initiator),
+                        playlistRepository.findByInitiatorAndTargetIsNull(target),
+                        playlistRepository.findByTargetAndInitiatorIsNull(target)
+                )
                 .flatMap(List::stream)
                 .toList();
     }
@@ -100,7 +98,7 @@ public class PlaylistService {
             // Save playlist and return
             return savePlaylist(playlist);
         }
-        
+
         // Create partial playlist
         Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
         playlist = savePlaylist(playlist);

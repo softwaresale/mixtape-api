@@ -4,6 +4,7 @@ import com.mixtape.mixtapeapi.mixtape.Mixtape;
 import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
+import com.mixtape.mixtapeapi.settings.SettingsService;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,12 +25,15 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PlaylistServiceTest {
 
-    @Mock PlaylistRepository mockRepository;
+    @Mock
+    PlaylistRepository mockRepository;
     @Mock
     TrackService mockTrackService;
     @Mock
@@ -38,12 +42,14 @@ public class PlaylistServiceTest {
     NotificationService mockNotificationService;
     @Mock
     BlockedActionService mockBlockedActionService;
+    @Mock
+    SettingsService mockSettingsService;
 
     PlaylistService playlistService;
 
     @BeforeEach
     void beforeEach() {
-        playlistService = new PlaylistService(mockRepository, mockNotificationService, mockTrackService, mockPicUploadService, mockBlockedActionService);
+        playlistService = new PlaylistService(mockRepository, mockNotificationService, mockTrackService, mockPicUploadService, mockBlockedActionService, mockSettingsService);
     }
 
     @Test
