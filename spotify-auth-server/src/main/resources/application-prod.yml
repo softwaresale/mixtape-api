@@ -14,6 +14,9 @@ spring:
             scope:
               - user-read-private
               - user-read-email
+              - user-read-playback-state
+              - user-modify-playback-state
+              - user-follow-read
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_basic
             redirect-uri: https://auth.getmixtapeapplication.com/login/oauth2/code/spotify-idp
