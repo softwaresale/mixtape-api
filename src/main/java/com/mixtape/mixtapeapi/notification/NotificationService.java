@@ -23,6 +23,10 @@ public class NotificationService {
         return notificationRepository.existsByInitiatorAndTargetAndNotificationType(initiator, target, NotificationType.FRIENDSHIP);
     }
 
+    public List<Notification> findNotificationsForUser(Profile profile) {
+        return notificationRepository.findAllByTargetOrInitiator(profile, profile);
+    }
+
     public Optional<Notification> findPlaylistNotification(String playlistId) {
         return notificationRepository.findByExternalId(playlistId);
     }

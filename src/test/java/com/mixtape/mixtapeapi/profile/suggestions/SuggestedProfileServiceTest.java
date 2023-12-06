@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.profile.suggestions;
 
 import com.mixtape.mixtapeapi.friendship.FriendshipService;
+import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedProfileService;
@@ -35,6 +36,9 @@ public class SuggestedProfileServiceTest {
 
     @Mock
     SpotifyService mockSpotifyService;
+
+    @Mock
+    NotificationService mockNotificationService;
 
     @InjectMocks
     SuggestedProfileService suggestedProfileService;

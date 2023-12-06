@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface NotificationRepository extends JpaRepository<Notification, String> {
     boolean existsByInitiatorAndTargetAndNotificationType(Profile initiator, Profile target, NotificationType type);
-
     Optional<Notification> findByTargetAndExternalId(Profile target, String externalId);
     Optional<Notification> findByExternalId(String externalId);
 
@@ -21,4 +20,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
     void deleteByTargetAndExternalId(Profile target, String externalId);
 
     void deleteByExternalId(String externalId);
+    List<Notification> findAllByTargetOrInitiator(Profile profile1, Profile profile2);
 }

@@ -36,8 +36,6 @@ public class FriendshipServiceTest {
 
     @Mock
     FriendshipRepository mockRepository;
-    @Mock
-    ApplicationEventPublisher mockEventPublisher;
 
     @Mock
     PlaylistService mockPlaylistService;
@@ -51,7 +49,7 @@ public class FriendshipServiceTest {
 
     @BeforeEach
     void setUp() {
-        friendshipService = new FriendshipService(mockRepository, mockEventPublisher, mockPlaylistService, mockNotificationService, mockBlockedActionService);
+        friendshipService = new FriendshipService(mockRepository, mockPlaylistService, mockNotificationService, mockBlockedActionService);
     }
 
     @Test
