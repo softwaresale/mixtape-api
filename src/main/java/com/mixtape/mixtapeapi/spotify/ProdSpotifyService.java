@@ -170,22 +170,25 @@ public class ProdSpotifyService implements SpotifyService {
         this.spotifyApi.setAccessToken(token);
 
         // figure out what device to enqueue to
-        Optional<Device> toEnqueueDevice = getDeviceToEnqueueTo(getUserDevices(token));
+        // Optional<Device> toEnqueueDevice = getDeviceToEnqueueTo(getUserDevices(token));
 
         for (String id : ids) {
             String uri = formatSpotifyUriForTrack(id);
             try {
                 var builder = this.spotifyApi.addItemToUsersPlaybackQueue(uri);
+                /*
                 toEnqueueDevice.ifPresent(dev -> {
                     logger.info("Enqueuing mixtape to device {} (id={})", dev.getName(), dev.getId());
                     builder.device_id(dev.getId());
                 });
+                 */
 
                 builder
                         .build()
                         .execute();
             } catch (IOException | SpotifyWebApiException | ParseException e) {
                 logger.error("Error while enqueueing song for user", e);
+                this.spotifyApi.setAccessToken(savedAccessToken);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify request", e);
             }
         }
