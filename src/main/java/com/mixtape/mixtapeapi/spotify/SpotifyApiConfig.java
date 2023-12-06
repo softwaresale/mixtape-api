@@ -3,6 +3,7 @@ package com.mixtape.mixtapeapi.spotify;
 import com.mixtape.mixtapeapi.config.ClientConfigProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import se.michaelthelin.spotify.SpotifyApi;
 
 @Configuration
@@ -22,9 +23,15 @@ public class SpotifyApiConfig {
                 .build();
     }
 
+    @Profile("!prod")
     @Bean
-    public SpotifyService spotifyService(SpotifyApi spotifyApi) {
-        // TODO make this mockable
+    public SpotifyService mockSpotifyService() {
+        return new MockSpotifyService();
+    }
+
+    @Profile("prod")
+    @Bean
+    public SpotifyService prodSpotifyService(SpotifyApi spotifyApi) {
         return new ProdSpotifyService(spotifyApi);
     }
 }
