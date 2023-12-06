@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
@@ -19,13 +18,11 @@ public class Settings {
     private String id;
 
     @OneToOne
-    @JoinColumn(name = "profileId")
     private Profile profile;
 
     private boolean permissionNeededForPlaylists;
 
     @OneToMany
-    @JoinColumn(name = "friendIdsWithPermission")
     private List<Profile> friendsWithPermission;
 
     public Settings() {
