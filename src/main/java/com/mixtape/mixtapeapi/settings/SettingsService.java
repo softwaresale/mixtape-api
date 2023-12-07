@@ -45,6 +45,6 @@ public class SettingsService {
 
     private Settings getOrCreateSettings(Profile profile) {
         return settingsRepository.findByProfile(profile)
-                .orElse(new Settings(null, profile, false, Collections.emptySet()));
+                .orElse(new Settings(null, profile, true, Collections.emptySet()));
     }
 }

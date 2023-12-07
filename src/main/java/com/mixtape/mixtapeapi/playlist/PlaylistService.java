@@ -65,6 +65,16 @@ public class PlaylistService {
         return playlists;
     }
 
+    public List<Playlist> findPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
+        return Stream.of(
+                        playlistRepository.findByInitiatorAndTarget(initiator, target),
+                        playlistRepository.findByInitiatorAndTarget(target, initiator)
+                )
+                .flatMap(List::stream)
+                .map(trackService::inflatePlaylist)
+                .toList();
+    }
+
     public List<Playlist> findPendingPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
         return Stream.of(
                         playlistRepository.findByInitiatorAndTargetIsNull(initiator),

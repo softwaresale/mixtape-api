@@ -51,6 +51,29 @@ public class FriendshipService {
                 .toList();
     }
 
+    public FriendshipInfo findFriendshipInfoForFriend(Profile profile, Profile friend) {
+        // Grab shared playlists
+        List<Playlist> sharedPlaylists = playlistService.findPlaylistsByInitiatorOrTarget(profile, friend);
+
+        // Find number of mixtapes made by profile
+        int numMixtapesFromProfile = findNumMixtapesByCreatorFromPlaylists(profile, sharedPlaylists);
+
+        // Find number of mixtapes made by friend
+        int numMixtapesFromFriend = findNumMixtapesByCreatorFromPlaylists(friend, sharedPlaylists);
+
+        // Return newly created info
+        return new FriendshipInfo(sharedPlaylists, numMixtapesFromProfile, numMixtapesFromFriend);
+    }
+
+    private int findNumMixtapesByCreatorFromPlaylists(Profile creator, List<Playlist> playlists) {
+        return (int) playlists
+                .stream()
+                .map(Playlist::getMixtapes)
+                .flatMap(List::stream)
+                .filter(mixtape -> mixtape.getCreator().equals(creator))
+                .count();
+    }
+
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
         // Check if full friendship already exists
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
