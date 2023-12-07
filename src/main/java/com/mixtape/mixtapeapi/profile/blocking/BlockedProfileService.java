@@ -40,6 +40,6 @@ public class BlockedProfileService extends BaseBlockedService {
 
     @Transactional
     public boolean unblockProfile(Profile blocker, Profile blockee) {
-        return blockedProfileRepository.deleteBlockedProfileByBlockerAndBlockee(blocker, blockee);
+        return blockedProfileRepository.deleteBlockedProfileByBlockerAndBlockee(blocker, blockee) > 0;
     }
 }
