@@ -3,11 +3,14 @@ package com.mixtape.mixtapeapi.settings;
 import com.mixtape.mixtapeapi.AbstractRestController;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.ProfileService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/v1/profile/{profileId}/settings")
@@ -17,6 +20,15 @@ public class SettingsController extends AbstractRestController {
     public SettingsController(ProfileService profileService, SettingsService settingsService) {
         super(profileService);
         this.settingsService = settingsService;
+    }
+
+    @GetMapping("/friends")
+    public Set<Profile> getFriendsWithPermission(@PathVariable String profileId) {
+        // Grab Profile
+        Profile profile = resolveProfileOr404(profileId);
+
+        // Get friends
+        return settingsService.findFriendsWithPermissionForProfile(profile);
     }
 
     @PutMapping

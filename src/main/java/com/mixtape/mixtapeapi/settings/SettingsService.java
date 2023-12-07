@@ -4,6 +4,7 @@ import com.mixtape.mixtapeapi.profile.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Set;
 
 @Service
 public class SettingsService {
@@ -15,6 +16,10 @@ public class SettingsService {
 
     public Settings findSettingsForProfile(Profile profile) {
         return getOrCreateSettings(profile);
+    }
+
+    public Set<Profile> findFriendsWithPermissionForProfile(Profile profile) {
+        return getOrCreateSettings(profile).getFriendsWithPermission();
     }
 
     public Settings updatePermissionForProfile(Profile profile, boolean isPermissionNeededForPlaylists) {
