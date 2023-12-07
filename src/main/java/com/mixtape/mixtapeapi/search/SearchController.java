@@ -10,17 +10,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/profile/{profileId}/search")
 public class SearchController extends AbstractRestController {
-    private final TrackService trackService;
+    private final SearchService searchService;
 
-    public SearchController(ProfileService profileService, TrackService trackService) {
+    public SearchController(ProfileService profileService, SearchService searchService) {
         super(profileService);
-        this.trackService = trackService;
+        this.searchService = searchService;
     }
 
     @GetMapping("/recent-tracks")
@@ -35,6 +36,6 @@ public class SearchController extends AbstractRestController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Current user does not have a provider token"));
 
         // Grab tracks and return
-        return trackService.getRecentlyListenedTracks(providerToken);
+        return searchService.findRecentlyListenedToTracks(providerToken);
     }
 }
