@@ -2,6 +2,7 @@ package com.mixtape.mixtapeapi.profile.blocking;
 
 import com.mixtape.mixtapeapi.friendship.FriendshipService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class BlockedProfileService extends BaseBlockedService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public boolean unblockProfile(Profile blocker, Profile blockee) {
         return blockedProfileRepository.deleteBlockedProfileByBlockerAndBlockee(blocker, blockee);
     }
