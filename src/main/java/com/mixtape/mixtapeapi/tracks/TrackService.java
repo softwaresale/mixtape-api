@@ -14,6 +14,7 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -73,5 +74,14 @@ public class TrackService {
 
     public Duration getMixtapeDuration(Mixtape mixtape) {
         return spotifyService.getTracksDuration(mixtape.getSongIDs().toArray(String[]::new));
+    }
+
+    public List<TrackInfo> getRecentlyListenedTracks(String providerToken) {
+        // get track metadata
+        List<String> recentlyListenedToTrackIDs = spotifyService.getRecentlyListenedToTracks(providerToken).stream()
+                .map(TrackSimplified::getId)
+                .toList();
+
+        return spotifyService.getTrackInfos(recentlyListenedToTrackIDs);
     }
 }

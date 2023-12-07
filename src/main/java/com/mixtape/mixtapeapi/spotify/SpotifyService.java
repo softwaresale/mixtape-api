@@ -5,6 +5,7 @@ import org.springframework.web.server.ResponseStatusException;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 
 public interface SpotifyService {
@@ -17,6 +18,10 @@ public interface SpotifyService {
      * @throws ResponseStatusException An HTTP response exception that the user should see and make sense of
      */
     List<TrackInfo> getTrackInfos(String ...ids) throws ResponseStatusException;
+    default List<TrackInfo> getTrackInfos(Collection<String> ids) throws ResponseStatusException {
+        String[] idsArray = ids.toArray(String[]::new);
+        return getTrackInfos(idsArray);
+    }
 
     /**
      * Get the duration of one or more tracks

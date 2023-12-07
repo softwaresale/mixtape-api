@@ -12,8 +12,6 @@ import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.miscellaneous.Device;
-import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
-import se.michaelthelin.spotify.model_objects.specification.Image;
 import se.michaelthelin.spotify.model_objects.specification.PagingCursorbased;
 import se.michaelthelin.spotify.model_objects.specification.PlayHistory;
 import se.michaelthelin.spotify.model_objects.specification.Track;
@@ -23,7 +21,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ProdSpotifyService implements SpotifyService {
 
@@ -49,7 +46,7 @@ public class ProdSpotifyService implements SpotifyService {
                     .execute();
 
             return Arrays.stream(spotifyTracks)
-                    .map(this::convertSpotifyTrack)
+                    .map(TrackInfo::fromSpotifyTrack)
                     .toList();
         } catch (IOException | ParseException | SpotifyWebApiException spotifyExe) {
             logger.error("Failed to get track info for mixtape", spotifyExe);
@@ -174,20 +171,6 @@ public class ProdSpotifyService implements SpotifyService {
             logger.error("Failed to refresh token", exe);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to refresh token", exe);
         }
-    }
-
-    private TrackInfo convertSpotifyTrack(Track track) {
-        String albumName = track.getAlbum().getName();
-        List<String> artistNames = Arrays.stream(track.getArtists())
-                .map(ArtistSimplified::getName)
-                .collect(Collectors.toList());
-
-        String albumURL = Arrays.stream(track.getAlbum().getImages())
-                .max(Comparator.comparingInt(Image::getHeight))
-                .map(Image::getUrl)
-                .orElse("");
-
-        return new TrackInfo(track.getId(), track.getName(), artistNames, albumName, albumURL);
     }
 
     // TESTING ONLY

@@ -1,6 +1,7 @@
 package com.mixtape.mixtapeapi.search;
 
 import com.mixtape.mixtapeapi.spotify.SpotifyService;
+import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
@@ -14,7 +15,7 @@ public class SearchService {
         this.spotifyService = spotifyService;
     }
 
-    public List<TrackSimplified> findRecentlyListenedToTracks(String providerToken) {
+    public List<TrackInfo> findRecentlyListenedToTracks(String providerToken) {
         return spotifyService.getRecentlyListenedToTracks(providerToken);
     }
 }
