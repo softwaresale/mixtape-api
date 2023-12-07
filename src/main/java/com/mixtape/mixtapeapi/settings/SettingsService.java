@@ -40,6 +40,6 @@ public class SettingsService {
 
     private Settings getOrCreateSettings(Profile profile) {
         return settingsRepository.findByProfile(profile)
-                .orElse(new Settings(null, profile, false, Collections.emptyList()));
+                .orElse(new Settings(null, profile, false, Collections.emptySet()));
     }
 }

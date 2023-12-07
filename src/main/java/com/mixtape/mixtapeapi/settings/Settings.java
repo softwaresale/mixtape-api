@@ -9,7 +9,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 @Entity
 public class Settings {
@@ -23,13 +23,13 @@ public class Settings {
     private boolean permissionNeededForPlaylists;
 
     @OneToMany
-    private List<Profile> friendsWithPermission;
+    private Set<Profile> friendsWithPermission;
 
     public Settings() {
-        this(null, null, true, Collections.emptyList());
+        this(null, null, true, Collections.emptySet());
     }
 
-    public Settings(String id, Profile profile, boolean permissionNeededForPlaylists, List<Profile> friendsWithPermission) {
+    public Settings(String id, Profile profile, boolean permissionNeededForPlaylists, Set<Profile> friendsWithPermission) {
         this.id = id;
         this.profile = profile;
         this.permissionNeededForPlaylists = permissionNeededForPlaylists;
@@ -60,11 +60,11 @@ public class Settings {
         this.permissionNeededForPlaylists = permissionNeededForPlaylists;
     }
 
-    public List<Profile> getFriendsWithPermission() {
+    public Set<Profile> getFriendsWithPermission() {
         return friendsWithPermission;
     }
 
-    public void setFriendsWithPermission(List<Profile> friendsWithPermission) {
+    public void setFriendsWithPermission(Set<Profile> friendsWithPermission) {
         this.friendsWithPermission = friendsWithPermission;
     }
 }

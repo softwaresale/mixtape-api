@@ -28,7 +28,7 @@ public class SettingsController extends AbstractRestController {
         return settingsService.updatePermissionForProfile(profile, isPermissionNeededForPlaylists);
     }
 
-    @PutMapping ("/friend/{friendId}")
+    @PutMapping ("/{friendId}")
     Settings updateFriendsWithPermissionForProfile(@PathVariable String profileId, @PathVariable String friendId) {
         // Grab profiles
         Profile profile = resolveProfileOr404(profileId);
