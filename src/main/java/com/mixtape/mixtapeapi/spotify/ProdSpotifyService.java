@@ -152,6 +152,7 @@ public class ProdSpotifyService implements SpotifyService {
         // Restore client credentials access token
         this.spotifyApi.setAccessToken(savedAccessToken);
 
+        Collections.reverse(tracks);
         return tracks;
     }
 

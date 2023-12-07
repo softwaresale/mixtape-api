@@ -4,6 +4,7 @@ import com.mixtape.mixtapeapi.tracks.TrackInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ResponseStatusException;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -40,5 +41,10 @@ public class MockSpotifyService implements SpotifyService {
     public List<String> checkFollowsAnyUsers(String userProviderToken, List<String> spotifyUserIDs) throws ResponseStatusException {
         logger.info("Checking user follows {}", spotifyUserIDs);
         return spotifyUserIDs;
+    }
+
+    @Override
+    public List<TrackSimplified> getRecentlyListenedToTracks(String providerToken) {
+        return List.of();
     }
 }
