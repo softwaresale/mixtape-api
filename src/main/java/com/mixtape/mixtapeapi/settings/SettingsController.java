@@ -22,6 +22,12 @@ public class SettingsController extends AbstractRestController {
         this.settingsService = settingsService;
     }
 
+    @GetMapping
+    public Settings getSettingsForUser(@PathVariable String profileId) {
+        Profile profile = resolveProfileOr404(profileId);
+        return this.settingsService.findSettingsForProfile(profile);
+    }
+
     @GetMapping("/friends")
     public Set<Profile> getFriendsWithPermission(@PathVariable String profileId) {
         // Grab Profile
