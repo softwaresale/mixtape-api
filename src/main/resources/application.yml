@@ -31,6 +31,5 @@ notification:
 
 aws:
   playlist-pic-bucket-url: https://playlist-pics.s3.amazonaws.com
-  db-secrets-id: rds!db-6f51bd14-4f86-40c7-8e33-2a21b081cff2
 # DB_PATH: localhost
 # ISSUER_HOST: auth.mixtape.local

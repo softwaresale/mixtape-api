@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.mixtape'
-version = '1.3.0'
+version = '1.5.0'
 
 java {
 	sourceCompatibility = '17'
@@ -38,8 +38,6 @@ dependencies {
 	// AWS stuff
 	implementation(platform("software.amazon.awssdk:bom:2.21.1"))
 	implementation("software.amazon.awssdk:s3")
-	implementation 'software.amazon.awssdk:secretsmanager'
-
 
 	// runtimeOnly 'com.h2database:h2'
 	runtimeOnly 'org.postgresql:postgresql'

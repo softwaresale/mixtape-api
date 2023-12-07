@@ -71,6 +71,19 @@ public class MixtapeController extends AbstractRestController {
         mixtapeService.removeMixtape(profile, playlistId, mixtapeId);
     }
 
+    @PostMapping("/{mixtapeId}/enqueue")
+    public void enqueueMixtape(@PathVariable String profileId, @PathVariable String playlistId, @PathVariable String mixtapeId) {
+        if (!profileId.equals("me")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This endpoint can only be called as current user");
+        }
+
+        Profile enqueueingUser = resolveProfileOr404(profileId);
+        String providerToken = getProviderToken()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Current user does not have a provider token"));
+
+        mixtapeService.enqueueMixtape(mixtapeId, enqueueingUser, providerToken);
+    }
+
     @GetMapping("/{mixtapeId}/reaction")
     public List<Reaction> getReactionsForMixtape(@PathVariable String profileId,
                                                  @PathVariable String playlistId,

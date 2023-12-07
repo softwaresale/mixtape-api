@@ -1,12 +1,10 @@
 package com.mixtape.mixtapeapi.profile;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.mixtape.mixtapeapi.profile.projections.SpotifyIdOnly;
+import jakarta.persistence.*;
 
 @Entity
-public class Profile {
+public class Profile implements SpotifyIdOnly {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -14,15 +12,22 @@ public class Profile {
     private String spotifyUID;
     private String displayName;
     private String profilePicURL;
+    private Boolean onboarded;
 
     public Profile() {
+        this(null, null, null, null, false);
     }
 
     public Profile(String id, String spotifyUID, String displayName, String profilePicURL) {
+        this(id, spotifyUID, displayName, profilePicURL, false);
+    }
+
+    public Profile(String id, String spotifyUID, String displayName, String profilePicURL, boolean onboarded) {
         this.id = id;
         this.spotifyUID = spotifyUID;
         this.displayName = displayName;
         this.profilePicURL = profilePicURL;
+        this.onboarded = onboarded;
     }
 
     public String getId() {
@@ -33,6 +38,7 @@ public class Profile {
         this.id = id;
     }
 
+    @Override
     public String getSpotifyUID() {
         return spotifyUID;
     }
@@ -55,6 +61,14 @@ public class Profile {
 
     public void setProfilePicURL(String profilePicURL) {
         this.profilePicURL = profilePicURL;
+    }
+
+    public Boolean getOnboarded() {
+        return onboarded;
+    }
+
+    public void setOnboarded(Boolean onboarded) {
+        this.onboarded = onboarded;
     }
 
     @Override

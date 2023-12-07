@@ -1,8 +1,8 @@
 spring:
-  # datasource:
-    # url: jdbc:postgresql://mixtape.cosucasfyf1s.us-east-2.rds.amazonaws.com:5432/mixtape
-    # username: ${DB_USERNAME}
-    # password: ${DB_PASSWORD}
+  datasource:
+    url: jdbc:postgresql://mixtape.cosucasfyf1s.us-east-2.rds.amazonaws.com:5432/mixtape
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   security:
     oauth2:
       client:
@@ -14,6 +14,9 @@ spring:
             scope:
               - user-read-private
               - user-read-email
+              - user-read-playback-state
+              - user-modify-playback-state
+              - user-follow-read
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_basic
             redirect-uri: https://auth.getmixtapeapplication.com/login/oauth2/code/spotify-idp
@@ -21,8 +24,6 @@ spring:
 mixtape:
   security:
     issuer-uri: https://auth.getmixtapeapplication.com
-  aws:
-    rds-secret-id: rds!db-6f51bd14-4f86-40c7-8e33-2a21b081cff2
 
 logging:
   level:

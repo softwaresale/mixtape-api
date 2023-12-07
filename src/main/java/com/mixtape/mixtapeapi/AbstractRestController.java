@@ -35,14 +35,11 @@ public abstract class AbstractRestController {
         }
 
         // if the id is "me", then use the current authenticated user
-        String profileId = requestedId;
-        if ("me".equals(profileId)) {
-            // It's some requested id
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            profileId = authentication.getName();
+        if ("me".equals(requestedId)) {
+            return getAuthenticatedProfile();
         }
 
-        return profileService.findProfile(profileId);
+        return profileService.findProfile(requestedId);
     }
 
     /**
@@ -53,6 +50,17 @@ public abstract class AbstractRestController {
     public Profile resolveProfileOr404(String requestedId) {
         return resolveProfile(requestedId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("Profile with id %s does not exist", requestedId)));
+    }
+
+    public Optional<Profile> getAuthenticatedProfile() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String profileId = authentication.getName();
+        return profileService.findProfile(profileId);
+    }
+
+    public Profile getAuthenticatedProfileOr404() {
+        return getAuthenticatedProfile()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Authenticated profile does not exist"));
     }
 
     /**
@@ -73,5 +81,10 @@ public abstract class AbstractRestController {
         } else {
             return Optional.empty();
         }
+    }
+
+    public String getProviderTokenOr500() {
+        return getProviderToken()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Current authenticated user does not have a provider token"));
     }
 }

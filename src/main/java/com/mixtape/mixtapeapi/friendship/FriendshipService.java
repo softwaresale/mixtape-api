@@ -5,6 +5,7 @@ import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.playlist.Playlist;
 import com.mixtape.mixtapeapi.playlist.PlaylistService;
 import com.mixtape.mixtapeapi.profile.Profile;
+import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
 import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -18,15 +19,24 @@ public class FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final PlaylistService playlistService;
     private final NotificationService notificationService;
+    private final BlockedActionService blockedActionService;
 
-    public FriendshipService(FriendshipRepository friendshipRepository, PlaylistService playlistService, NotificationService notificationService) {
+    public FriendshipService(FriendshipRepository friendshipRepository,
+                             PlaylistService playlistService,
+                             NotificationService notificationService,
+                             BlockedActionService blockedActionService) {
         this.friendshipRepository = friendshipRepository;
         this.playlistService = playlistService;
         this.notificationService = notificationService;
+        this.blockedActionService = blockedActionService;
     }
 
     public Optional<Friendship> findFriendship(String friendshipId) {
         return friendshipRepository.findById(friendshipId);
+    }
+
+    public Optional<Friendship> findFriendshipBetweenProfiles(Profile firstProfile, Profile secondProfile) {
+        return friendshipRepository.findByTargetAndInitiatorOrInitiatorAndTarget(firstProfile, secondProfile, firstProfile, secondProfile);
     }
 
     public List<Profile> findFriendsForProfile(Profile profile) {
@@ -41,21 +51,48 @@ public class FriendshipService {
                 .toList();
     }
 
+    public FriendshipInfo findFriendshipInfoForFriend(Profile profile, Profile friend) {
+        // Grab shared playlists
+        List<Playlist> sharedPlaylists = playlistService.findPlaylistsByInitiatorOrTarget(profile, friend);
+
+        // Find number of mixtapes made by profile
+        int numMixtapesFromProfile = findNumMixtapesByCreatorFromPlaylists(profile, sharedPlaylists);
+
+        // Find number of mixtapes made by friend
+        int numMixtapesFromFriend = findNumMixtapesByCreatorFromPlaylists(friend, sharedPlaylists);
+
+        // Return newly created info
+        return new FriendshipInfo(sharedPlaylists, numMixtapesFromProfile, numMixtapesFromFriend);
+    }
+
+    private int findNumMixtapesByCreatorFromPlaylists(Profile creator, List<Playlist> playlists) {
+        return (int) playlists
+                .stream()
+                .map(Playlist::getMixtapes)
+                .flatMap(List::stream)
+                .filter(mixtape -> mixtape.getCreator().equals(creator))
+                .count();
+    }
+
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
         // Check if full friendship already exists
         if (friendshipRepository.existsByInitiatorAndTarget(initiator, requestedTarget) ||
                 friendshipRepository.existsByInitiatorAndTarget(requestedTarget, initiator)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(460), "Friendship between these two already exists");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Friendship between these two already exists");
+        }
+
+        if (blockedActionService.isBlockedSymmetrical(initiator, requestedTarget)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Profiles are blocked");
         }
 
         // Check if partial friendship already exists that initiator has created
         if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(initiator, requestedTarget)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(461), "You have already sent out a friendship request for this user");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already sent out a friendship request for this user");
         }
 
         // Check if partial friendship already exists that target has created
         if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(requestedTarget, initiator)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(462), "This user has already sent you a friendship request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This user has already sent you a friendship request");
         }
 
         // Create partial friendship

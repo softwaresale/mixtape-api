@@ -1,15 +1,14 @@
 package com.mixtape.mixtapeapi.profile;
 
+import com.mixtape.mixtapeapi.profile.projections.SpotifyIdOnly;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileService {
@@ -63,7 +62,13 @@ public class ProfileService {
         ArrayList<Map<String, Object>> imagesObjs = newOAuth2User.getAttribute("images");
         Optional<String> profilePic = findFirstProfilePic(imagesObjs);
 
-        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""));
+        Profile newProfile = new Profile("", spotifyId, displayName, profilePic.orElse(""), false);
         return profileRepository.save(newProfile);
+    }
+
+    public List<String> getSpotifyIDsForAllUsersExcept(Set<String> excluded) {
+        return this.profileRepository.getAllByIdIsNotIn(excluded).stream()
+                .map(SpotifyIdOnly::getSpotifyUID)
+                .collect(Collectors.toList());
     }
 }
