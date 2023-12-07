@@ -17,7 +17,7 @@ public class MockSpotifyService implements SpotifyService {
     public List<TrackInfo> getTrackInfos(String... ids) throws ResponseStatusException {
         logger.info("Getting track infos for ids: {}", String.join(",", ids));
         return Arrays.stream(ids)
-                .map(id -> new TrackInfo(id, String.format("song-%d", id), List.of("artist"), "album", ""))
+                .map(id -> new TrackInfo(id, String.format("song-%s", id), List.of("artist"), "album", ""))
                 .toList();
     }
 
