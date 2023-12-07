@@ -35,6 +35,10 @@ public class FriendshipService {
         return friendshipRepository.findById(friendshipId);
     }
 
+    public Optional<Friendship> findFriendshipBetweenProfiles(Profile firstProfile, Profile secondProfile) {
+        return friendshipRepository.findByTargetAndInitiatorOrInitiatorAndTarget(firstProfile, secondProfile, firstProfile, secondProfile);
+    }
+
     public List<Profile> findFriendsForProfile(Profile profile) {
         return friendshipRepository.findAllByInitiatorAndTargetNotNullOrTarget(profile, profile).stream()
                 .map(friendship -> {
