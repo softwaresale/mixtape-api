@@ -33,6 +33,16 @@ public class FriendshipController extends AbstractRestController {
         return friendshipService.findFriendsForProfile(profile);
     }
 
+    @GetMapping("/friends/{friendId}/friendshipInfo")
+    public FriendshipInfo getFriendshipInfoForFriend(@PathVariable String profileId, @PathVariable String friendId) {
+        // Grab profiles
+        Profile profile = resolveProfileOr404(profileId);
+        Profile friend = resolveProfileOr404(friendId);
+
+        // Return info
+        return friendshipService.findFriendshipInfoForFriend(profile, friend);
+    }
+
     @DeleteMapping("/friends/{friendId}")
     public void deleteFriendshipByFriend(@PathVariable String profileId, @PathVariable String friendId) {
         Profile deleter = resolveProfileOr404(profileId);
