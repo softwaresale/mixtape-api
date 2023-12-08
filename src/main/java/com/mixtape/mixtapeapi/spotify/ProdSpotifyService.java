@@ -1,27 +1,26 @@
 package com.mixtape.mixtapeapi.spotify;
 
 import com.mixtape.mixtapeapi.tracks.TrackInfo;
+import com.mixtape.mixtapeapi.util.ListUtils;
 import org.apache.hc.core5.http.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.enums.ModelObjectType;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.miscellaneous.Device;
-import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
-import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.PagingCursorbased;
+import se.michaelthelin.spotify.model_objects.specification.PlayHistory;
 import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class ProdSpotifyService implements SpotifyService {
 
@@ -47,7 +46,7 @@ public class ProdSpotifyService implements SpotifyService {
                     .execute();
 
             return Arrays.stream(spotifyTracks)
-                    .map(this::convertSpotifyTrack)
+                    .map(TrackInfo::fromSpotifyTrack)
                     .toList();
         } catch (IOException | ParseException | SpotifyWebApiException spotifyExe) {
             logger.error("Failed to get track info for mixtape", spotifyExe);
@@ -77,6 +76,83 @@ public class ProdSpotifyService implements SpotifyService {
         }
     }
 
+    @Override
+    public List<String> checkFollowsAnyUsers(String userProviderToken, List<String> spotifyUserIDs) throws ResponseStatusException {
+
+        if (spotifyUserIDs.isEmpty()) {
+            return List.of();
+        }
+
+        // Save the token state
+        String savedAccessToken = this.spotifyApi.getAccessToken();
+        this.spotifyApi.setAccessToken(userProviderToken);
+
+        List<String> allFollowedUsers = new ArrayList<>();
+        List<List<String>> idPartitions = ListUtils.partition(spotifyUserIDs, 50);
+        for (List<String> part : idPartitions) {
+            List<String> checkedUsers = checkFollowsSet(part);
+            allFollowedUsers.addAll(checkedUsers);
+        }
+
+        this.spotifyApi.setAccessToken(savedAccessToken);
+
+        return allFollowedUsers;
+    }
+
+    private List<String> checkFollowsSet(List<String> userIDsSubset) {
+        Boolean[] results;
+        try {
+            results = spotifyApi.checkCurrentUserFollowsArtistsOrUsers(ModelObjectType.USER, userIDsSubset.toArray(String[]::new))
+                    .build()
+                    .execute();
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            logger.error("Failed to check if user follows other users", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to check if user follows other users", e);
+        }
+
+        List<String> followedUsers = new ArrayList<>();
+        for (int i = 0; i < userIDsSubset.size(); i++) {
+            if (results[i]) {
+                followedUsers.add(userIDsSubset.get(i));
+            }
+        }
+
+        return followedUsers;
+    }
+
+    @Override
+    public List<TrackSimplified> getRecentlyListenedToTracks(String providerToken) {
+        // Save the token state
+        String savedAccessToken = this.spotifyApi.getAccessToken();
+        this.spotifyApi.setAccessToken(providerToken);
+
+        // Declare list to store tracks
+        List<TrackSimplified> tracks = new ArrayList<>();
+
+        // Try to execute spotify api to request recently listened to tracks
+        try {
+            // Grab first batch of recently listened to tracks
+            PagingCursorbased<PlayHistory> recentTracksPaging = this.spotifyApi
+                    .getCurrentUsersRecentlyPlayedTracks()
+                    .build()
+                    .execute();
+
+            // Append to tracks
+            Arrays.stream(recentTracksPaging.getItems())
+                    .map(PlayHistory::getTrack)
+                    .forEach(tracks::add);
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            logger.error("Error while enqueueing song for user", e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify request", e);
+        }
+
+        // Restore client credentials access token
+        this.spotifyApi.setAccessToken(savedAccessToken);
+
+        Collections.reverse(tracks);
+        return tracks;
+    }
+
     private boolean tokenExpired() {
         return tokenExpiresAt == null || Instant.now().compareTo(tokenExpiresAt) > 0;
     }
@@ -97,20 +173,6 @@ public class ProdSpotifyService implements SpotifyService {
         }
     }
 
-    private TrackInfo convertSpotifyTrack(Track track) {
-        String albumName = track.getAlbum().getName();
-        List<String> artistNames = Arrays.stream(track.getArtists())
-                .map(ArtistSimplified::getName)
-                .collect(Collectors.toList());
-
-        String albumURL = Arrays.stream(track.getAlbum().getImages())
-                .max(Comparator.comparingInt(Image::getHeight))
-                .map(Image::getUrl)
-                .orElse("");
-
-        return new TrackInfo(track.getId(), track.getName(), artistNames, albumName, albumURL);
-    }
-
     // TESTING ONLY
     protected void setTokenExpiresAt(Instant instant) {
         this.tokenExpiresAt = instant;
@@ -127,22 +189,25 @@ public class ProdSpotifyService implements SpotifyService {
         this.spotifyApi.setAccessToken(token);
 
         // figure out what device to enqueue to
-        Optional<Device> toEnqueueDevice = getDeviceToEnqueueTo(getUserDevices(token));
+        // Optional<Device> toEnqueueDevice = getDeviceToEnqueueTo(getUserDevices(token));
 
         for (String id : ids) {
             String uri = formatSpotifyUriForTrack(id);
             try {
                 var builder = this.spotifyApi.addItemToUsersPlaybackQueue(uri);
+                /*
                 toEnqueueDevice.ifPresent(dev -> {
                     logger.info("Enqueuing mixtape to device {} (id={})", dev.getName(), dev.getId());
                     builder.device_id(dev.getId());
                 });
+                 */
 
                 builder
                         .build()
                         .execute();
             } catch (IOException | SpotifyWebApiException | ParseException e) {
                 logger.error("Error while enqueueing song for user", e);
+                this.spotifyApi.setAccessToken(savedAccessToken);
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to perform spotify request", e);
             }
         }

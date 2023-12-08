@@ -1,9 +1,32 @@
 package com.mixtape.mixtapeapi.tracks;
 
+import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
+import se.michaelthelin.spotify.model_objects.specification.Image;
+import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.TrackSimplified;
+
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class TrackInfo {
+
+    public static TrackInfo fromSpotifyTrack(Track track) {
+        String albumName = track.getAlbum().getName();
+        List<String> artistNames = Arrays.stream(track.getArtists())
+                .map(ArtistSimplified::getName)
+                .collect(Collectors.toList());
+
+        String albumURL = Arrays.stream(track.getAlbum().getImages())
+                .max(Comparator.comparingInt(Image::getHeight))
+                .map(Image::getUrl)
+                .orElse("");
+
+        return new TrackInfo(track.getId(), track.getName(), artistNames, albumName, albumURL);
+    }
+
     private String id;
     private String name;
     private List<String> artistNames;

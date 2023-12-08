@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Profile;
 import software.amazon.awssdk.auth.credentials.*;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
 @Configuration
 public class AwsConfig {
@@ -21,14 +20,6 @@ public class AwsConfig {
     @Bean
     public S3Client s3Client(AwsCredentialsProvider awsCredentialsProvider) {
         return S3Client.builder()
-                .credentialsProvider(awsCredentialsProvider)
-                .region(Region.US_EAST_2)
-                .build();
-    }
-
-    @Bean
-    public SecretsManagerClient secretsManagerClient(AwsCredentialsProvider awsCredentialsProvider) {
-        return SecretsManagerClient.builder()
                 .credentialsProvider(awsCredentialsProvider)
                 .region(Region.US_EAST_2)
                 .build();

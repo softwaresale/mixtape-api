@@ -4,6 +4,8 @@ import com.mixtape.mixtapeapi.notification.NotificationService;
 import com.mixtape.mixtapeapi.notification.NotificationType;
 import com.mixtape.mixtapeapi.profile.Profile;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
+import com.mixtape.mixtapeapi.settings.Settings;
+import com.mixtape.mixtapeapi.settings.SettingsService;
 import com.mixtape.mixtapeapi.tracks.TrackService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -28,13 +30,15 @@ public class PlaylistService {
     private final TrackService trackService;
     private final PlaylistPicUploadService pictureUploadService;
     private final BlockedActionService blockedActionService;
+    private final SettingsService settingsService;
 
-    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService, BlockedActionService blockedActionService) {
+    public PlaylistService(PlaylistRepository playlistRepository, NotificationService notificationService, TrackService trackService, PlaylistPicUploadService pictureUploadService, BlockedActionService blockedActionService, SettingsService settingsService) {
         this.playlistRepository = playlistRepository;
         this.notificationService = notificationService;
         this.trackService = trackService;
         this.pictureUploadService = pictureUploadService;
         this.blockedActionService = blockedActionService;
+        this.settingsService = settingsService;
     }
 
     public Optional<Playlist> findPlaylist(String id) {
@@ -61,13 +65,23 @@ public class PlaylistService {
         return playlists;
     }
 
+    public List<Playlist> findPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
+        return Stream.of(
+                        playlistRepository.findByInitiatorAndTarget(initiator, target),
+                        playlistRepository.findByInitiatorAndTarget(target, initiator)
+                )
+                .flatMap(List::stream)
+                .map(trackService::inflatePlaylist)
+                .toList();
+    }
+
     public List<Playlist> findPendingPlaylistsByInitiatorOrTarget(Profile initiator, Profile target) {
         return Stream.of(
-                playlistRepository.findByInitiatorAndTargetIsNull(initiator),
-                playlistRepository.findByTargetAndInitiatorIsNull(initiator),
-                playlistRepository.findByInitiatorAndTargetIsNull(target),
-                playlistRepository.findByTargetAndInitiatorIsNull(target)
-        )
+                        playlistRepository.findByInitiatorAndTargetIsNull(initiator),
+                        playlistRepository.findByTargetAndInitiatorIsNull(initiator),
+                        playlistRepository.findByInitiatorAndTargetIsNull(target),
+                        playlistRepository.findByTargetAndInitiatorIsNull(target)
+                )
                 .flatMap(List::stream)
                 .toList();
     }
@@ -82,7 +96,19 @@ public class PlaylistService {
             logger.error("Profiles {} and {} are blocked, so cannot create playlist", initiator, requestedTarget);
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cannot create playlist due to blockage");
         }
-        
+
+        // Grab settings for profile
+        Settings settings = settingsService.findSettingsForProfile(requestedTarget);
+
+        // Check if acceptance and notification is not needed
+        if (!settings.isPermissionNeededForPlaylists() || settings.getFriendsWithPermission().contains(initiator)) {
+            // Create full playlist
+            Playlist playlist = new Playlist(null, null, newPlaylistDTO.name, initiator, requestedTarget, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
+
+            // Save playlist and return
+            return savePlaylist(playlist);
+        }
+
         // Create partial playlist
         Playlist playlist = new Playlist(null, "", newPlaylistDTO.name, initiator, null, newPlaylistDTO.description, newPlaylistDTO.coverPicURL);
         playlist = savePlaylist(playlist);

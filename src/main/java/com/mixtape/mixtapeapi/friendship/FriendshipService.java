@@ -35,6 +35,10 @@ public class FriendshipService {
         return friendshipRepository.findById(friendshipId);
     }
 
+    public Optional<Friendship> findFriendshipBetweenProfiles(Profile firstProfile, Profile secondProfile) {
+        return friendshipRepository.findByTargetAndInitiatorOrInitiatorAndTarget(firstProfile, secondProfile, firstProfile, secondProfile);
+    }
+
     public List<Profile> findFriendsForProfile(Profile profile) {
         return friendshipRepository.findAllByInitiatorAndTargetNotNullOrTarget(profile, profile).stream()
                 .map(friendship -> {
@@ -45,6 +49,29 @@ public class FriendshipService {
                     }
                 })
                 .toList();
+    }
+
+    public FriendshipInfo findFriendshipInfoForFriend(Profile profile, Profile friend) {
+        // Grab shared playlists
+        List<Playlist> sharedPlaylists = playlistService.findPlaylistsByInitiatorOrTarget(profile, friend);
+
+        // Find number of mixtapes made by profile
+        int numMixtapesFromProfile = findNumMixtapesByCreatorFromPlaylists(profile, sharedPlaylists);
+
+        // Find number of mixtapes made by friend
+        int numMixtapesFromFriend = findNumMixtapesByCreatorFromPlaylists(friend, sharedPlaylists);
+
+        // Return newly created info
+        return new FriendshipInfo(sharedPlaylists, numMixtapesFromProfile, numMixtapesFromFriend);
+    }
+
+    private int findNumMixtapesByCreatorFromPlaylists(Profile creator, List<Playlist> playlists) {
+        return (int) playlists
+                .stream()
+                .map(Playlist::getMixtapes)
+                .flatMap(List::stream)
+                .filter(mixtape -> mixtape.getCreator().equals(creator))
+                .count();
     }
 
     public Friendship createFriendship(Profile initiator, Profile requestedTarget) {
@@ -60,12 +87,12 @@ public class FriendshipService {
 
         // Check if partial friendship already exists that initiator has created
         if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(initiator, requestedTarget)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(461), "You have already sent out a friendship request for this user");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "You have already sent out a friendship request for this user");
         }
 
         // Check if partial friendship already exists that target has created
         if (notificationService.friendshipNotificationExistsByInitiatorAndTarget(requestedTarget, initiator)) {
-            throw new ResponseStatusException(HttpStatus.valueOf(462), "This user has already sent you a friendship request");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "This user has already sent you a friendship request");
         }
 
         // Create partial friendship

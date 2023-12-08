@@ -2,14 +2,7 @@ package com.mixtape.mixtapeapi.profile;
 
 import com.mixtape.mixtapeapi.AbstractRestController;
 import com.mixtape.mixtapeapi.profile.blocking.BlockedActionService;
-import com.mixtape.mixtapeapi.profile.blocking.BlockedProfileService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,11 +16,6 @@ public class ProfileController extends AbstractRestController {
         this.blockedActionService = blockedActionService;
     }
 
-    @GetMapping("/{profileId}")
-    public Profile getProfile(@PathVariable String profileId) {
-        return resolveProfileOr404(profileId);
-    }
-
     @GetMapping
     public List<Profile> getProfilesByDisplayNameFuzzy(@RequestParam("displayName") String searchDisplayName) {
         Profile authenticatedUser = getAuthenticatedProfileOr404();
@@ -35,8 +23,20 @@ public class ProfileController extends AbstractRestController {
         return blockedActionService.filterProfilesByBlocked(authenticatedUser, allResults);
     }
 
+    @GetMapping("/{profileId}")
+    public Profile getProfile(@PathVariable String profileId) {
+        return resolveProfileOr404(profileId);
+    }
+
     @PostMapping
     public Profile createNewProfile(@RequestBody Profile newProfile) {
         return profileService.saveProfile(newProfile);
+    }
+
+    @PutMapping("/{profileId}/onboarded")
+    public Profile setOnboarded(@PathVariable String profileId, @RequestParam("isOnboarded") Boolean isOnboarded) {
+        Profile currentUser = resolveProfileOr404(profileId);
+        currentUser.setOnboarded(isOnboarded);
+        return profileService.saveProfile(currentUser);
     }
 }
